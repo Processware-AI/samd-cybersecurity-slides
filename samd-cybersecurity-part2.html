@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>컨설팅사의 대응 전략 분석 — SaMD 사이버보안</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (THEME)
+           Medical-Cyber Dark: deep navy + teal accent
+           =========================================== */
+        :root {
+            --bg-primary: #0b1120;
+            --bg-secondary: #111d35;
+            --bg-card: #162040;
+            --bg-gradient: linear-gradient(145deg, #0b1120 0%, #111d35 40%, #0b1120 100%);
+            --text-primary: #e8ecf4;
+            --text-secondary: #8a9bb7;
+            --text-muted: #5a6d8a;
+            --accent: #00d4aa;
+            --accent-glow: rgba(0, 212, 170, 0.25);
+            --accent-warm: #ff6b4a;
+            --accent-blue: #4d8bff;
+            --accent-purple: #a78bfa;
+            --card-orange: #ff7849;
+            --card-teal: #00d4aa;
+            --card-blue: #4d8bff;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+
+            --font-display: 'Archivo Black', 'Noto Sans KR', sans-serif;
+            --font-heading: 'Noto Sans KR', sans-serif;
+            --font-body: 'Noto Sans KR', 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Grotesk', monospace;
+            --title-size: clamp(1.8rem, 5vw, 3.8rem);
+            --h2-size: clamp(1.3rem, 3.5vw, 2.4rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.5rem);
+            --body-size: clamp(0.75rem, 1.4vw, 1.05rem);
+            --small-size: clamp(0.65rem, 1vw, 0.85rem);
+            --label-size: clamp(0.6rem, 0.9vw, 0.75rem);
+
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --content-gap: clamp(0.75rem, 2vw, 2rem);
+            --element-gap: clamp(0.25rem, 1vw, 1rem);
+
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           BASE STYLES & RESET
+           =========================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =========================================== */
+        html, body { height: 100%; overflow-x: hidden; }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+        .feature-list, .bullet-list { gap: clamp(0.4rem, 1vh, 1rem); }
+        .feature-list li, .bullet-list li { font-size: var(--body-size); line-height: 1.4; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+        }
+        img, .image-container { max-width: 100%; max-height: min(50vh, 400px); object-fit: contain; }
+
+        /* ===========================================
+           RESPONSIVE BREAKPOINTS
+           =========================================== */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --h2-size: clamp(1rem, 3vw, 1.75rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+            .nav-dots, .keyboard-hint, .decorative { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+        @media (max-width: 600px) {
+            :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===========================================
+           REDUCED MOTION
+           =========================================== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+        .slide.visible .reveal { opacity: 1; transform: translateY(0); }
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+        .reveal:nth-child(6) { transition-delay: 0.6s; }
+
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.92);
+            transition: opacity 0.7s var(--ease-out-expo), transform 0.7s var(--ease-out-expo);
+        }
+        .slide.visible .reveal-scale { opacity: 1; transform: scale(1); }
+
+        /* ===========================================
+           PROGRESS BAR
+           =========================================== */
+        .progress-bar {
+            position: fixed; top: 0; left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-blue));
+            z-index: 1000;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* ===========================================
+           NAVIGATION DOTS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.75rem, 2vw, 1.5rem);
+            top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column;
+            gap: clamp(6px, 0.8vh, 10px);
+            z-index: 100;
+        }
+        .nav-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--text-muted);
+            cursor: pointer; transition: all 0.3s ease;
+            border: none; padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+            transform: scale(1.3);
+        }
+
+        /* ===========================================
+           SLIDE HEADER (number + label side by side)
+           =========================================== */
+        .slide-header {
+            position: absolute;
+            top: clamp(1rem, 3vw, 2rem);
+            left: clamp(1.5rem, 4vw, 4rem);
+            display: flex;
+            align-items: baseline;
+            gap: clamp(0.5rem, 1vw, 1rem);
+            z-index: 2;
+            user-select: none;
+        }
+        .slide-number {
+            font-family: var(--font-mono);
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.04);
+            line-height: 1;
+        }
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.04);
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        /* ===========================================
+           GRID BACKGROUND PATTERN
+           =========================================== */
+        .slide::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none; z-index: 0;
+        }
+        .slide > * { position: relative; z-index: 1; }
+
+        /* ===========================================
+           TITLE SLIDE
+           =========================================== */
+        .title-slide {
+            background: var(--bg-gradient);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .title-slide .slide-content {
+            align-items: center;
+            gap: clamp(1rem, 3vh, 2.5rem);
+        }
+        .title-badge {
+            display: inline-block;
+            padding: clamp(0.3rem, 0.6vw, 0.5rem) clamp(0.8rem, 1.5vw, 1.2rem);
+            border: 1px solid var(--accent);
+            border-radius: 100px;
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--accent);
+            letter-spacing: 0.1em;
+        }
+        .title-slide h1 {
+            font-family: var(--font-heading);
+            font-size: var(--title-size);
+            font-weight: 900;
+            line-height: 1.15;
+            max-width: min(85vw, 900px);
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .title-subtitle {
+            font-size: clamp(0.85rem, 1.8vw, 1.2rem);
+            color: var(--text-secondary);
+            max-width: min(80vw, 700px);
+            line-height: 1.6;
+        }
+        .title-meta {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+        .title-logo {
+            height: clamp(48px, 7vh, 80px);
+            width: auto;
+            object-fit: contain;
+            border-radius: 50%;
+            padding: clamp(4px, 0.8vh, 8px) clamp(8px, 1.5vw, 16px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .title-slide::after {
+            content: '';
+            position: absolute;
+            width: clamp(200px, 40vw, 500px);
+            height: clamp(200px, 40vw, 500px);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(77, 139, 255, 0.15) 0%, transparent 70%);
+            top: 10%; right: -10%;
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ===========================================
+           CONTENT SLIDES
+           =========================================== */
+        .content-slide .slide-content {
+            gap: var(--content-gap);
+            padding-left: clamp(3rem, 8vw, 8rem);
+        }
+        .content-slide h2 {
+            font-family: var(--font-heading);
+            font-size: var(--h2-size);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+        .content-slide h2 .accent { color: var(--accent); }
+
+        /* ===========================================
+           HIGHLIGHT CARD
+           =========================================== */
+        .highlight-card {
+            background: var(--card-teal);
+            color: #0b1120;
+            padding: clamp(1rem, 2.5vw, 2rem) clamp(1.5rem, 3vw, 2.5rem);
+            border-radius: clamp(8px, 1vw, 16px);
+            max-width: min(85vw, 750px);
+            font-weight: 500;
+        }
+        .highlight-card.orange { background: var(--card-orange); }
+        .highlight-card.blue { background: var(--card-blue); color: #fff; }
+        .highlight-card.purple { background: var(--accent-purple); color: #0b1120; }
+        .highlight-card p {
+            font-size: clamp(0.85rem, 1.6vw, 1.15rem);
+            line-height: 1.6;
+        }
+
+        /* ===========================================
+           QUOTE BLOCK
+           =========================================== */
+        .quote-block {
+            border-left: 3px solid var(--accent);
+            padding-left: clamp(1rem, 2vw, 2rem);
+            max-width: min(85vw, 750px);
+        }
+        .quote-block p {
+            font-size: clamp(0.9rem, 1.8vw, 1.25rem);
+            font-weight: 500; line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        /* ===========================================
+           BULLET LIST
+           =========================================== */
+        .bullets {
+            list-style: none;
+            display: flex; flex-direction: column;
+            gap: clamp(0.4rem, 1vh, 0.8rem);
+            max-width: min(85vw, 750px);
+        }
+        .bullets li {
+            font-size: var(--body-size); line-height: 1.5;
+            color: var(--text-secondary);
+            padding-left: clamp(1rem, 2vw, 1.5rem);
+            position: relative;
+        }
+        .bullets li::before {
+            content: '';
+            position: absolute; left: 0;
+            top: clamp(0.4rem, 0.7vw, 0.55rem);
+            width: 6px; height: 6px; border-radius: 50%;
+            background: var(--accent);
+        }
+        .bullets li strong { color: var(--text-primary); font-weight: 600; }
+
+        /* ===========================================
+           TWO-COLUMN LAYOUT
+           =========================================== */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(1rem, 3vw, 3rem);
+            max-width: min(90vw, 1000px);
+        }
+        @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+        /* ===========================================
+           INFO CARDS (2-col, 3-col, 4-col)
+           =========================================== */
+        .card-grid {
+            display: grid;
+            gap: clamp(0.5rem, 1.5vw, 1.2rem);
+            max-width: min(92vw, 1000px);
+        }
+        .card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        .card-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+        @media (max-width: 768px) {
+            .card-grid.cols-3, .card-grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 500px) {
+            .card-grid.cols-2, .card-grid.cols-3, .card-grid.cols-4 { grid-template-columns: 1fr; }
+        }
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: clamp(8px, 1vw, 12px);
+            padding: clamp(0.8rem, 1.5vw, 1.5rem);
+            display: flex; flex-direction: column;
+            gap: clamp(0.2rem, 0.5vh, 0.4rem);
+        }
+        .info-card .card-label {
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .info-card .card-label.teal { color: var(--accent); }
+        .info-card .card-label.blue { color: var(--accent-blue); }
+        .info-card .card-label.purple { color: var(--accent-purple); }
+        .info-card .card-label.orange { color: var(--accent-warm); }
+        .info-card h3 {
+            font-family: var(--font-heading);
+            font-size: var(--h3-size);
+            font-weight: 700; color: var(--text-primary);
+            line-height: 1.2;
+        }
+        .info-card p, .info-card li {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .info-card .card-footer {
+            font-size: var(--label-size);
+            color: var(--text-muted);
+            margin-top: auto;
+            padding-top: clamp(0.2rem, 0.5vh, 0.4rem);
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        /* ===========================================
+           TABLE STYLES
+           =========================================== */
+        .slide-table {
+            width: min(90vw, 900px);
+            border-collapse: collapse;
+            font-size: var(--small-size);
+        }
+        .slide-table th {
+            background: var(--bg-card);
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            font-weight: 600; letter-spacing: 0.08em;
+            text-transform: uppercase; text-align: left;
+            padding: clamp(0.4rem, 1vw, 0.8rem) clamp(0.5rem, 1.2vw, 1rem);
+            border-bottom: 2px solid var(--accent);
+        }
+        .slide-table td {
+            padding: clamp(0.35rem, 0.8vw, 0.65rem) clamp(0.5rem, 1.2vw, 1rem);
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary); vertical-align: top;
+        }
+        .slide-table td:first-child { color: var(--text-primary); font-weight: 500; }
+        .slide-table tr:last-child td { border-bottom: none; }
+        .slide-table .highlight-cell { color: var(--accent); font-weight: 600; }
+
+        /* ===========================================
+           TAGS
+           =========================================== */
+        .tag {
+            display: inline-block;
+            padding: clamp(0.15rem, 0.3vw, 0.25rem) clamp(0.4rem, 0.8vw, 0.6rem);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            font-weight: 600; letter-spacing: 0.05em;
+        }
+        .tag-strength { background: rgba(0, 212, 170, 0.15); color: var(--accent); }
+        .tag-weakness { background: rgba(255, 107, 74, 0.15); color: var(--accent-warm); }
+        .tag-ai { background: rgba(167, 139, 250, 0.15); color: var(--accent-purple); }
+        .tag-signal { background: rgba(77, 139, 255, 0.15); color: var(--accent-blue); }
+
+        /* ===========================================
+           CONCLUSION ITEMS
+           =========================================== */
+        .conclusion-points {
+            display: flex; flex-direction: column;
+            gap: clamp(0.6rem, 1.5vh, 1.2rem);
+            max-width: min(85vw, 800px);
+        }
+        .conclusion-item {
+            display: flex; align-items: flex-start;
+            gap: clamp(0.5rem, 1.2vw, 1rem);
+        }
+        .conclusion-num {
+            font-family: var(--font-mono);
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            font-weight: 700; color: var(--accent-blue);
+            line-height: 1.2; flex-shrink: 0;
+            min-width: clamp(1.5rem, 3vw, 2.5rem);
+        }
+        .conclusion-text {
+            font-size: var(--body-size);
+            color: var(--text-secondary); line-height: 1.5;
+        }
+        .conclusion-text strong { color: var(--text-primary); }
+
+        /* ===========================================
+           WARNING CARDS
+           =========================================== */
+        .warning-list {
+            list-style: none;
+            display: flex; flex-direction: column;
+            gap: clamp(0.4rem, 1vh, 0.8rem);
+            max-width: min(85vw, 800px);
+        }
+        .warning-list li {
+            font-size: var(--body-size); line-height: 1.5;
+            color: var(--text-secondary);
+            padding-left: clamp(1.2rem, 2.2vw, 1.8rem);
+            position: relative;
+        }
+        .warning-list li::before {
+            content: '';
+            position: absolute; left: 0;
+            top: clamp(0.4rem, 0.7vw, 0.55rem);
+            width: 8px; height: 8px;
+            background: var(--accent-warm);
+            border-radius: 2px;
+            transform: rotate(45deg);
+        }
+        .warning-list li strong { color: var(--accent-warm); font-weight: 600; }
+
+        /* ===========================================
+           FORMULA / RECOMMENDATION BOX
+           =========================================== */
+        .formula-box {
+            background: linear-gradient(135deg, rgba(77, 139, 255, 0.08), rgba(0, 212, 170, 0.08));
+            border: 1px solid rgba(77, 139, 255, 0.2);
+            border-radius: clamp(8px, 1vw, 16px);
+            padding: clamp(1rem, 2vw, 2rem) clamp(1.5rem, 3vw, 2.5rem);
+            max-width: min(85vw, 800px);
+        }
+        .formula-box .formula-label {
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            color: var(--accent-blue);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: clamp(0.4rem, 1vh, 0.8rem);
+        }
+        .formula-box p {
+            font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+            color: var(--text-primary); line-height: 1.6;
+            font-weight: 500;
+        }
+
+        /* ===========================================
+           GLOW DECORATIONS
+           =========================================== */
+        .glow-tl::after {
+            content: '';
+            position: absolute;
+            width: clamp(150px, 30vw, 400px); height: clamp(150px, 30vw, 400px);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 212, 170, 0.08) 0%, transparent 70%);
+            top: -10%; left: -5%;
+            pointer-events: none; z-index: 0;
+        }
+        .glow-br::after {
+            content: '';
+            position: absolute;
+            width: clamp(150px, 30vw, 400px); height: clamp(150px, 30vw, 400px);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(77, 139, 255, 0.08) 0%, transparent 70%);
+            bottom: -10%; right: -5%;
+            pointer-events: none; z-index: 0;
+        }
+
+        /* ===========================================
+           DIVIDER
+           =========================================== */
+        .divider {
+            width: clamp(30px, 5vw, 60px);
+            height: 3px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+
+        /* ===========================================
+           THREE-LAYER BOX (for revenue model)
+           =========================================== */
+        .layer-stack {
+            display: flex; flex-direction: column;
+            gap: 2px;
+            max-width: min(85vw, 750px);
+            border-radius: clamp(8px, 1vw, 12px);
+            overflow: hidden;
+        }
+        .layer-item {
+            display: grid;
+            grid-template-columns: clamp(80px, 12vw, 140px) clamp(80px, 10vw, 120px) 1fr;
+            gap: clamp(0.5rem, 1vw, 1rem);
+            align-items: center;
+            padding: clamp(0.5rem, 1vw, 0.8rem) clamp(0.8rem, 1.5vw, 1.2rem);
+            background: var(--bg-card);
+        }
+        .layer-item .layer-type {
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        .layer-item .layer-nature {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+        }
+        .layer-item .layer-examples {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Progress bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Navigation dots -->
+    <nav class="nav-dots" id="navDots" aria-label="슬라이드 네비게이션"></nav>
+
+    <!-- ===========================================
+         SLIDE 1: TITLE
+         =========================================== -->
+    <section class="slide title-slide" aria-label="표지">
+        <div class="slide-content">
+<img class="title-logo reveal" src="data:image/png;base64,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" alt="VWAY">
+            <span class="title-badge reveal">2026 스마트 의료 안전 컨퍼런스</span>
+            <h1 class="reveal">컨설팅사의<br>대응 전략 분석</h1>
+            <div class="divider reveal"></div>
+            <p class="title-subtitle reveal">SaMD 사이버보안 수요에 컨설팅 시장은 어떻게 반응하고 있는가</p>
+            <p class="title-meta reveal">강의 중반부 — 시장 분석</p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 2: 왜 컨설팅사의 대응을 들여다보는가
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="분석 관점">
+        <div class="slide-header"><span class="slide-number">01</span><span class="section-label">들어가며</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">왜 컨설팅사의 대응을 <span class="accent">들여다보는가</span></h2>
+            <div class="quote-block reveal">
+                <p>초반부 결론: 도입·운영 어느 단계에서도 단독 해결이 어렵고,<br>하이브리드 조합이 불가피하다.</p>
+            </div>
+            <div class="divider reveal"></div>
+            <ul class="bullets reveal">
+                <li>컨설팅사들의 서비스 모델·조직·도구·수익구조 <strong>재편 양상</strong> 분석</li>
+                <li>단순한 시장 관찰이 아닌, <strong>"어떤 컨설팅사를 골라야 하는가"</strong>의 판단 기준 마련</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 3: 공통 방향성 개요
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="공통 방향성">
+        <div class="slide-header"><span class="slide-number">02</span><span class="section-label">공통 방향성</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">컨설팅사들이 <span class="accent">합의하는</span> 5가지</h2>
+            <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--element-gap);">각기 다른 프레임이지만, 바닥에 깔린 흐름은 놀랍도록 일치합니다</p>
+            <div class="conclusion-points reveal">
+                <div class="conclusion-item">
+                    <span class="conclusion-num">1</span>
+                    <p class="conclusion-text"><strong>포지셔닝 전환</strong> — 문서 대행사에서 전주기 파트너로</p>
+                </div>
+                <div class="conclusion-item">
+                    <span class="conclusion-num">2</span>
+                    <p class="conclusion-text"><strong>수익모델 재편</strong> — 일회성 프로젝트에서 리커링 구조로</p>
+                </div>
+                <div class="conclusion-item">
+                    <span class="conclusion-num">3</span>
+                    <p class="conclusion-text"><strong>서비스 통합</strong> — RA/QA + 제품보안 + DevSecOps</p>
+                </div>
+                <div class="conclusion-item">
+                    <span class="conclusion-num">4</span>
+                    <p class="conclusion-text"><strong>AI = 증폭 수단</strong> — 대체가 아니라 가속</p>
+                </div>
+                <div class="conclusion-item">
+                    <span class="conclusion-num">5</span>
+                    <p class="conclusion-text"><strong>글로벌 규제 정합성</strong> — 차별화 요소로 부상</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 4: 포지셔닝 전환 + 수익모델
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="포지셔닝과 수익모델">
+        <div class="slide-header"><span class="slide-number">03</span><span class="section-label">공통 방향성</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">포지셔닝 전환 + <span class="accent">수익모델</span> 재편</h2>
+            <div class="highlight-card reveal">
+                <p>보안 문서 작성 지원업체 → <strong>SaMD 규제형 사이버보안 관리체계 구축·운영 파트너</strong></p>
+            </div>
+            <p class="reveal" style="color: var(--text-secondary); margin-top: var(--content-gap); margin-bottom: var(--element-gap);">공통적으로 제시되는 <strong style="color: var(--text-primary);">3층 수익 구조</strong></p>
+            <div class="layer-stack reveal-scale">
+                <div class="layer-item">
+                    <span class="layer-type" style="color: var(--accent);">프로젝트형</span>
+                    <span class="layer-nature">초기 도입, 일회성</span>
+                    <span class="layer-examples">Gap 분석, 관리체계 수립, 파일럿 적용</span>
+                </div>
+                <div class="layer-item">
+                    <span class="layer-type" style="color: var(--accent-blue);">리테이너형</span>
+                    <span class="layer-nature">월정·연간 계약</span>
+                    <span class="layer-examples">vCISO, 취약점 모니터링, 정기점검, 변경영향평가</span>
+                </div>
+                <div class="layer-item">
+                    <span class="layer-type" style="color: var(--accent-purple);">플랫폼형</span>
+                    <span class="layer-nature">구독·도구 기반</span>
+                    <span class="layer-examples">AI 문서 생성기, CVE-SBOM 매칭, SaaS 대시보드</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 5: 서비스 통합 + AI
+         =========================================== -->
+    <section class="slide content-slide" aria-label="서비스 통합과 AI">
+        <div class="slide-header"><span class="slide-number">04</span><span class="section-label">공통 방향성</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">서비스 통합 + <span class="accent">AI 증폭</span></h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <span class="tag tag-strength">교차점의 공백을 메우는 5개 역할</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li><strong>규제/품질</strong> — 디지털의료제품법, GMP/QMS</li>
+                        <li><strong>제품보안</strong> — 위협모델, SDL, 취약점 대응</li>
+                        <li><strong>SW/클라우드</strong> — SaaS형 SaMD, CI/CD</li>
+                        <li><strong>운영서비스</strong> — 리테이너, 사고대응</li>
+                        <li><strong>AI/자동화</strong> — 도구화, 정합성 검증</li>
+                    </ul>
+                </div>
+                <div class="reveal">
+                    <span class="tag tag-ai">AI 전략의 3가지 수렴점</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li><strong>원가 절감</strong> — 1인 컨설턴트 서비스 범위 확장</li>
+                        <li><strong>품질 일관성</strong> — 개인 역량 편차를 AI 검증이 보완</li>
+                        <li><strong>고객 자립 지원</strong> — 도구 이전으로 관계 장기화</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="quote-block reveal" style="margin-top: var(--content-gap);">
+                <p>전문가가 프레임을 설계하고, AI가 초안·정리·추적성·반복업무를 가속한다.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 6: 글로벌 규제 정합성
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="글로벌 규제">
+        <div class="slide-header"><span class="slide-number">05</span><span class="section-label">공통 방향성</span></div>
+        <div class="slide-content">
+            <h2 class="reveal"><span class="accent">글로벌 규제</span> 정합성이 차별화 요소</h2>
+            <div class="two-col">
+                <div class="reveal">
+                    <div class="info-card">
+                        <span class="card-label orange">격차 발생</span>
+                        <p>국내 식약처 보안지침<strong>만</strong> 다루는 컨설팅사</p>
+                        <p style="color: var(--text-muted);">vs</p>
+                        <p>FDA · EU MDR · IMDRF N60 · IEC 81001-5-1을<br><strong>통합 프레임워크</strong>로 제시하는 컨설팅사</p>
+                    </div>
+                </div>
+                <div class="reveal">
+                    <div class="info-card">
+                        <span class="card-label teal">선택 기준</span>
+                        <h3>Crosswalk 매핑 역량</h3>
+                        <p>해외 진출 수요가 있는 고객에게 <strong>글로벌 규제 매핑 역량</strong>이 컨설팅사 선택의 핵심 기준이 됩니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 7: 4가지 유형 — A, B
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="유형 A B">
+        <div class="slide-header"><span class="slide-number">06</span><span class="section-label">대응 유형</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">대응 전략 <span class="accent">4가지 유형</span> — A & B</h2>
+            <div class="card-grid cols-2 reveal-scale">
+                <div class="info-card">
+                    <span class="card-label teal">유형 A</span>
+                    <h3>전주기 하이브리드형</h3>
+                    <p>프로젝트 + 리테이너 + 플랫폼 3층 구조.<br>Basic → Standard → Premium 성숙도별 패키지.</p>
+                    <ul class="bullets" style="margin-top: clamp(0.2rem, 0.4vh, 0.3rem);">
+                        <li><strong>강점:</strong> 고객 락인, 안정적 재무</li>
+                        <li><strong>약점:</strong> 초기 조직 구축 비용</li>
+                    </ul>
+                    <div class="card-footer">적합: 중견 이상 컨설팅사</div>
+                </div>
+                <div class="info-card">
+                    <span class="card-label blue">유형 B</span>
+                    <h3>CaaS 중심형</h3>
+                    <p>구독형 보안 관리 서비스. 중소 SaMD 제조사 대상.<br>MSSP 전략적 제휴로 24/7 운영 역량 확보.</p>
+                    <ul class="bullets" style="margin-top: clamp(0.2rem, 0.4vh, 0.3rem);">
+                        <li><strong>강점:</strong> 진입장벽 해소, 반복 매출</li>
+                        <li><strong>약점:</strong> MSSP 의존, 커스터마이징 제한</li>
+                    </ul>
+                    <div class="card-footer">적합: MSSP 파트너십 보유 조직</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 8: 4가지 유형 — C, D
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="유형 C D">
+        <div class="slide-header"><span class="slide-number">07</span><span class="section-label">대응 유형</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">대응 전략 <span class="accent">4가지 유형</span> — C & D</h2>
+            <div class="card-grid cols-2 reveal-scale">
+                <div class="info-card">
+                    <span class="card-label purple">유형 C</span>
+                    <h3>AI-Native 플랫폼형</h3>
+                    <p>AI를 서비스 전달 방식 자체로 전환.<br>컨설팅 → Retainer → SaaS 구독 진화.</p>
+                    <ul class="bullets" style="margin-top: clamp(0.2rem, 0.4vh, 0.3rem);">
+                        <li><strong>강점:</strong> 원가 경쟁력, 확장성</li>
+                        <li><strong>약점:</strong> 플랫폼 개발 투자 필요</li>
+                    </ul>
+                    <div class="card-footer">적합: 소규모·1인, AI 역량 보유</div>
+                </div>
+                <div class="info-card">
+                    <span class="card-label orange">유형 D</span>
+                    <h3>기술 심층 특화형</h3>
+                    <p>SBOM 관리, 침투 테스트, 위협 인텔리전스, VDP 대행.<br>글로벌 보안 벤더 파트너십 기반.</p>
+                    <ul class="bullets" style="margin-top: clamp(0.2rem, 0.4vh, 0.3rem);">
+                        <li><strong>강점:</strong> 기술적 차별화</li>
+                        <li><strong>약점:</strong> 규제 문서화 공백</li>
+                    </ul>
+                    <div class="card-footer">적합: 보안 기술 중심 기업</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 9: 서비스 포트폴리오 — 도입 단계
+         =========================================== -->
+    <section class="slide content-slide" aria-label="도입 상품">
+        <div class="slide-header"><span class="slide-number">08</span><span class="section-label">포트폴리오</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">서비스 포트폴리오 — <span class="accent">도입 단계</span></h2>
+            <table class="slide-table reveal-scale">
+                <thead>
+                    <tr>
+                        <th>상품 (통칭)</th>
+                        <th>기간</th>
+                        <th>성격</th>
+                        <th>가격대</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Quick Scan / 진단형</td>
+                        <td>2~4주</td>
+                        <td>현황 진단 + 로드맵</td>
+                        <td>저가 진입</td>
+                    </tr>
+                    <tr>
+                        <td>Full Build / 풀패키지</td>
+                        <td>4~6개월</td>
+                        <td>관리체계 전체 수립</td>
+                        <td class="highlight-cell">핵심 수익</td>
+                    </tr>
+                    <tr>
+                        <td>Co-Build / Advisory</td>
+                        <td>6~9개월</td>
+                        <td>내부 주도 + 전문가 동행</td>
+                        <td>중간 가격</td>
+                    </tr>
+                    <tr>
+                        <td>우수 관리체계 인증 지원</td>
+                        <td>6~12개월</td>
+                        <td>허가 혜택 연계 전략</td>
+                        <td class="highlight-cell">고부가</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 10: 서비스 포트폴리오 — 운영 단계
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="운영 상품">
+        <div class="slide-header"><span class="slide-number">09</span><span class="section-label">포트폴리오</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">서비스 포트폴리오 — <span class="accent">운영 단계</span></h2>
+            <table class="slide-table reveal-scale">
+                <thead>
+                    <tr>
+                        <th>상품 (통칭)</th>
+                        <th>주기</th>
+                        <th>성격</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Annual Retainer</td>
+                        <td>월정</td>
+                        <td>취약점 모니터링, 보고서, IR 지원</td>
+                    </tr>
+                    <tr>
+                        <td>Annual Audit</td>
+                        <td>연 1회</td>
+                        <td>보안지침 준수 독립 검증</td>
+                    </tr>
+                    <tr>
+                        <td>침해행위 긴급 대응</td>
+                        <td>사고 발생 시</td>
+                        <td>신고 지원, RCA, 재발 방지</td>
+                    </tr>
+                    <tr>
+                        <td>vCISO 지원</td>
+                        <td>월간</td>
+                        <td>외부 보안책임자 역할</td>
+                    </tr>
+                    <tr>
+                        <td>변경영향평가 지원</td>
+                        <td>상시</td>
+                        <td>통신기능 변경 ↔ 보호조치 ↔ 변경관리</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 11: AI/도구 기반 상품
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="AI 도구">
+        <div class="slide-header"><span class="slide-number">10</span><span class="section-label">포트폴리오</span></div>
+        <div class="slide-content">
+            <h2 class="reveal"><span class="accent">AI/도구</span> 기반 상품</h2>
+            <table class="slide-table reveal-scale">
+                <thead>
+                    <tr>
+                        <th>모듈</th>
+                        <th>기능</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>CVE-SBOM 자동 매칭 봇</td>
+                        <td>SBOM 업로드 → 신규 CVE 자동 알림</td>
+                    </tr>
+                    <tr>
+                        <td>사이버보안 문서 자동 생성기</td>
+                        <td>제품 정보 → 절차서·IRP 초안</td>
+                    </tr>
+                    <tr>
+                        <td>식약처 신고 보조 챗봇</td>
+                        <td>증상 입력 → 신고 양식 + 조치 가이드</td>
+                    </tr>
+                    <tr>
+                        <td>보안 감사 체크리스트 자동화</td>
+                        <td>증적 업로드 → 준수 대시보드</td>
+                    </tr>
+                    <tr>
+                        <td>규제 모니터링 봇</td>
+                        <td>식약처·FDA 공고 → 고객 영향 분석</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="highlight-card blue reveal" style="margin-top: var(--content-gap);">
+                <p>"허가 시점 문서 작성" 단일 상품 → <strong>도입-운영-도구화로 이어지는 다층 포트폴리오</strong></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 12: 피해야 할 4가지 함정
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="함정">
+        <div class="slide-header"><span class="slide-number">11</span><span class="section-label">함정</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">컨설팅사들이 경고하는 <span class="accent">4가지 함정</span></h2>
+            <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--element-gap);">= 제조업체가 컨설팅사 선택 시 체크해야 할 리스크 지표</p>
+            <ul class="warning-list reveal">
+                <li><strong>문서 대행 중심 접근</strong> — 심사 시점엔 그럴듯하지만, 운영 증적이 없으면 곧 무너짐</li>
+                <li><strong>일반 정보보안 프레임 단순 이식</strong> — ISMS를 그대로 가져오면 환자안전·임상성·인허가 구조 미반영</li>
+                <li><strong>개발조직과 분리된 규제문서 작성</strong> — 실제 아키텍처·API·배포방식을 모르면 완성도 높은 체계 불가</li>
+                <li><strong>AI 무통제 사용</strong> — 빠른 생산 가능하나, 오반영·정보유출·부정확 기술서술이 리스크 증폭</li>
+            </ul>
+            <div class="highlight-card orange reveal" style="margin-top: var(--content-gap);">
+                <p><strong>역으로 말하면:</strong> "이 네 가지 함정을 피하고 있는가"가 컨설팅사 선택의 핵심 체크포인트</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 13: 3가지 신호
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="3가지 신호">
+        <div class="slide-header"><span class="slide-number">12</span><span class="section-label">결론</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">컨설팅 시장이 가리키는 <span class="accent">3가지 신호</span></h2>
+            <div class="conclusion-points reveal">
+                <div class="conclusion-item">
+                    <span class="conclusion-num">1</span>
+                    <p class="conclusion-text"><strong>"제대로 된" 컨설팅사의 모습이 바뀌고 있다</strong><br>
+                    <span style="color: var(--text-muted);">과거: 템플릿·심사 통과 경험</span> →
+                    <span style="color: var(--accent);">현재: 규제 해석 + 아키텍처 이해 + 운영 연속성 + AI 통제</span></p>
+                </div>
+                <div class="conclusion-item">
+                    <span class="conclusion-num">2</span>
+                    <p class="conclusion-text"><strong>리테이너가 핵심이라는 것은, 제조업체도 그렇게 계약해야 한다는 뜻</strong><br>
+                    "한 번에 끝나는 구축 프로젝트"만 찾는다면, 규제 구조와 어긋난 계약</p>
+                </div>
+                <div class="conclusion-item">
+                    <span class="conclusion-num">3</span>
+                    <p class="conclusion-text"><strong>AI는 선택이 아니라 전제 조건</strong><br>
+                    AI 미활용 → 원가 경쟁력 하락, 품질 편차 확대, 고객 자립 도구 부재</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 14: 후반부로의 연결
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="다음 단계">
+        <div class="slide-header"><span class="slide-number">13</span><span class="section-label">연결</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">그렇다면 제조업체는 <span class="accent">무엇을</span> 해야 하는가</h2>
+            <div class="two-col reveal">
+                <div class="formula-box">
+                    <div class="formula-label">초반부 확인</div>
+                    <p>단독 옵션은 없고,<br><strong>하이브리드가 답이다</strong></p>
+                </div>
+                <div class="formula-box">
+                    <div class="formula-label">중반부 확인</div>
+                    <p>전주기 파트너·리커링·AI-Native로<br><strong>시장이 재편되고 있다</strong></p>
+                </div>
+            </div>
+            <div class="divider reveal"></div>
+            <p class="reveal" style="color: var(--text-secondary); max-width: min(85vw, 750px);">
+                공급 측 분석만으로는 <strong style="color: var(--text-primary);">내일 아침 무엇을 해야 할지</strong> 알 수 없습니다.
+            </p>
+            <div class="highlight-card reveal" style="margin-top: var(--element-gap);">
+                <p><strong>후반부에서는:</strong> 기업 규모·보안 성숙도·시급성별 의사결정 가이드, 컨설팅사 선택 체크리스트, 단계별 실행 로드맵</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+       JAVASCRIPT: SLIDE CONTROLLER
+       =========================================== -->
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.isScrolling = false;
+                this.scrollTimeout = null;
+
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupWheelNav();
+                this.setupProgressBar();
+                this.setupNavDots();
+
+                this.slides[0].classList.add('visible');
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const idx = Array.from(this.slides).indexOf(entry.target);
+                            if (idx !== -1) {
+                                this.currentSlide = idx;
+                                this.updateProgressBar();
+                                this.updateNavDots();
+                            }
+                        }
+                    });
+                }, { threshold: 0.5 });
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    switch(e.key) {
+                        case 'ArrowDown': case 'ArrowRight': case ' ': case 'PageDown':
+                            e.preventDefault();
+                            this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                            break;
+                        case 'ArrowUp': case 'ArrowLeft': case 'PageUp':
+                            e.preventDefault();
+                            this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                            break;
+                        case 'Home': e.preventDefault(); this.goToSlide(0); break;
+                        case 'End': e.preventDefault(); this.goToSlide(this.slides.length - 1); break;
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let startY = 0, startX = 0;
+                document.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                    startX = e.touches[0].clientX;
+                }, { passive: true });
+                document.addEventListener('touchend', (e) => {
+                    const deltaY = startY - e.changedTouches[0].clientY;
+                    const deltaX = startX - e.changedTouches[0].clientX;
+                    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 50) {
+                        if (deltaY > 0) this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                        else this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                    }
+                }, { passive: true });
+            }
+
+            setupWheelNav() {
+                document.addEventListener('wheel', (e) => {
+                    if (this.isScrolling) return;
+                    this.isScrolling = true;
+                    if (e.deltaY > 0) this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                    else this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                    clearTimeout(this.scrollTimeout);
+                    this.scrollTimeout = setTimeout(() => { this.isScrolling = false; }, 800);
+                }, { passive: true });
+            }
+
+            setupProgressBar() {
+                this.progressBar = document.getElementById('progressBar');
+                this.updateProgressBar();
+            }
+
+            updateProgressBar() {
+                if (!this.progressBar) return;
+                this.progressBar.style.width = ((this.currentSlide + 1) / this.slides.length) * 100 + '%';
+            }
+
+            setupNavDots() {
+                const container = document.getElementById('navDots');
+                if (!container) return;
+                this.slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+                    dot.setAttribute('aria-label', `슬라이드 ${i + 1}`);
+                    dot.addEventListener('click', () => this.goToSlide(i));
+                    container.appendChild(dot);
+                });
+                this.dots = container.querySelectorAll('.nav-dot');
+            }
+
+            updateNavDots() {
+                if (!this.dots) return;
+                this.dots.forEach((dot, i) => dot.classList.toggle('active', i === this.currentSlide));
+            }
+
+            goToSlide(index) {
+                if (index < 0 || index >= this.slides.length) return;
+                this.currentSlide = index;
+                this.slides[index].scrollIntoView({ behavior: 'smooth' });
+                this.updateProgressBar();
+                this.updateNavDots();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => { new SlidePresentation(); });
+    </script>
+</body>
+</html>

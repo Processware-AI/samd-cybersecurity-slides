@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaMD 제조업체의 사이버보안 관리체계 구축·운영 어프로치 분석</title>
+
+    <!-- Fonts: Pretendard for Korean + Archivo Black for display -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (THEME)
+           Medical-Cyber Dark: deep navy + teal accent
+           =========================================== */
+        :root {
+            /* Colors */
+            --bg-primary: #0b1120;
+            --bg-secondary: #111d35;
+            --bg-card: #162040;
+            --bg-gradient: linear-gradient(145deg, #0b1120 0%, #111d35 40%, #0b1120 100%);
+            --text-primary: #e8ecf4;
+            --text-secondary: #8a9bb7;
+            --text-muted: #5a6d8a;
+            --accent: #00d4aa;
+            --accent-glow: rgba(0, 212, 170, 0.25);
+            --accent-warm: #ff6b4a;
+            --accent-blue: #4d8bff;
+            --accent-purple: #a78bfa;
+            --card-orange: #ff7849;
+            --card-teal: #00d4aa;
+            --card-blue: #4d8bff;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+
+            /* Typography — MUST use clamp() */
+            --font-display: 'Archivo Black', 'Noto Sans KR', sans-serif;
+            --font-heading: 'Noto Sans KR', sans-serif;
+            --font-body: 'Noto Sans KR', 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Grotesk', monospace;
+            --title-size: clamp(1.8rem, 5vw, 3.8rem);
+            --h2-size: clamp(1.3rem, 3.5vw, 2.4rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.5rem);
+            --body-size: clamp(0.75rem, 1.4vw, 1.05rem);
+            --small-size: clamp(0.65rem, 1vw, 0.85rem);
+            --label-size: clamp(0.6rem, 0.9vw, 0.75rem);
+
+            /* Spacing scales with viewport */
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --content-gap: clamp(0.75rem, 2vw, 2rem);
+            --element-gap: clamp(0.25rem, 1vw, 1rem);
+
+            /* Animation */
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* ===========================================
+           BASE STYLES & RESET
+           =========================================== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* ===========================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =========================================== */
+        html, body {
+            height: 100%;
+            overflow-x: hidden;
+        }
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Each slide = exact viewport height */
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Content container */
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+
+        /* Cards/containers use viewport-relative max sizes */
+        .card, .container, .content-box {
+            max-width: min(90vw, 1000px);
+            max-height: min(80vh, 700px);
+        }
+
+        /* Lists auto-scale */
+        .feature-list, .bullet-list {
+            gap: clamp(0.4rem, 1vh, 1rem);
+        }
+        .feature-list li, .bullet-list li {
+            font-size: var(--body-size);
+            line-height: 1.4;
+        }
+
+        /* Grids adapt */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: clamp(0.5rem, 1.5vw, 1rem);
+        }
+
+        /* Images constrained */
+        img, .image-container {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+            border-radius: 50%;
+            padding: clamp(4px, 0.8vh, 8px) clamp(8px, 1.5vw, 16px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        /* ===========================================
+           RESPONSIVE BREAKPOINTS
+           =========================================== */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --h2-size: clamp(1rem, 3vw, 1.75rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+            .nav-dots, .keyboard-hint, .decorative { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+        @media (max-width: 600px) {
+            :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        /* ===========================================
+           REDUCED MOTION
+           =========================================== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+
+        /* ===========================================
+           ANIMATIONS
+           =========================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(25px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+        .slide.visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+        .reveal:nth-child(6) { transition-delay: 0.6s; }
+
+        .reveal-scale {
+            opacity: 0;
+            transform: scale(0.92);
+            transition: opacity 0.7s var(--ease-out-expo),
+                        transform 0.7s var(--ease-out-expo);
+        }
+        .slide.visible .reveal-scale {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ===========================================
+           PROGRESS BAR
+           =========================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-blue));
+            z-index: 1000;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        /* ===========================================
+           NAVIGATION DOTS
+           =========================================== */
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.75rem, 2vw, 1.5rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(6px, 0.8vh, 10px);
+            z-index: 100;
+        }
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+            transform: scale(1.3);
+        }
+
+        /* ===========================================
+           SLIDE NUMBER
+           =========================================== */
+        .slide-header {
+            position: absolute;
+            top: clamp(1rem, 3vw, 2rem);
+            left: clamp(1.5rem, 4vw, 4rem);
+            display: flex;
+            align-items: baseline;
+            gap: clamp(0.5rem, 1vw, 1rem);
+            z-index: 2;
+            user-select: none;
+        }
+        .slide-number {
+            font-family: var(--font-mono);
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.04);
+            line-height: 1;
+        }
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.04);
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        /* ===========================================
+           GRID BACKGROUND PATTERN
+           =========================================== */
+        .slide::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .slide > * { position: relative; z-index: 1; }
+
+        /* ===========================================
+           TITLE SLIDE
+           =========================================== */
+        .title-slide {
+            background: var(--bg-gradient);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .title-slide .slide-content {
+            align-items: center;
+            gap: clamp(1rem, 3vh, 2.5rem);
+        }
+        .title-badge {
+            display: inline-block;
+            padding: clamp(0.3rem, 0.6vw, 0.5rem) clamp(0.8rem, 1.5vw, 1.2rem);
+            border: 1px solid var(--accent);
+            border-radius: 100px;
+            font-family: var(--font-mono);
+            font-size: var(--small-size);
+            color: var(--accent);
+            letter-spacing: 0.1em;
+        }
+        .title-slide h1 {
+            font-family: var(--font-heading);
+            font-size: var(--title-size);
+            font-weight: 900;
+            line-height: 1.15;
+            max-width: min(85vw, 900px);
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .title-subtitle {
+            font-size: clamp(0.85rem, 1.8vw, 1.2rem);
+            color: var(--text-secondary);
+            max-width: min(80vw, 700px);
+            line-height: 1.6;
+        }
+        .title-meta {
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            letter-spacing: 0.05em;
+        }
+        .title-logo {
+            height: clamp(48px, 7vh, 80px);
+            width: auto;
+            object-fit: contain;
+        }
+
+
+        /* Floating accent shapes on title */
+        .title-slide::after {
+            content: '';
+            position: absolute;
+            width: clamp(200px, 40vw, 500px);
+            height: clamp(200px, 40vw, 500px);
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            top: 10%;
+            right: -10%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===========================================
+           CONTENT SLIDES
+           =========================================== */
+        .content-slide .slide-content {
+            gap: var(--content-gap);
+            padding-left: clamp(3rem, 8vw, 8rem);
+        }
+        .content-slide h2 {
+            font-family: var(--font-heading);
+            font-size: var(--h2-size);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+        .content-slide h2 .accent {
+            color: var(--accent);
+        }
+
+        /* ===========================================
+           HIGHLIGHT CARD (colored accent block)
+           =========================================== */
+        .highlight-card {
+            background: var(--card-teal);
+            color: #0b1120;
+            padding: clamp(1rem, 2.5vw, 2rem) clamp(1.5rem, 3vw, 2.5rem);
+            border-radius: clamp(8px, 1vw, 16px);
+            max-width: min(85vw, 750px);
+            font-weight: 500;
+        }
+        .highlight-card.orange { background: var(--card-orange); }
+        .highlight-card.blue { background: var(--card-blue); color: #fff; }
+        .highlight-card p {
+            font-size: clamp(0.85rem, 1.6vw, 1.15rem);
+            line-height: 1.6;
+        }
+
+        /* ===========================================
+           QUOTE BLOCK
+           =========================================== */
+        .quote-block {
+            border-left: 3px solid var(--accent);
+            padding-left: clamp(1rem, 2vw, 2rem);
+            max-width: min(85vw, 750px);
+        }
+        .quote-block p {
+            font-size: clamp(0.9rem, 1.8vw, 1.25rem);
+            font-weight: 500;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+
+        /* ===========================================
+           BULLET LIST
+           =========================================== */
+        .bullets {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.4rem, 1vh, 0.8rem);
+            max-width: min(85vw, 750px);
+        }
+        .bullets li {
+            font-size: var(--body-size);
+            line-height: 1.5;
+            color: var(--text-secondary);
+            padding-left: clamp(1rem, 2vw, 1.5rem);
+            position: relative;
+        }
+        .bullets li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: clamp(0.4rem, 0.7vw, 0.55rem);
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+        .bullets li strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* ===========================================
+           TWO-COLUMN LAYOUT
+           =========================================== */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(1rem, 3vw, 3rem);
+            max-width: min(90vw, 1000px);
+        }
+        @media (max-width: 768px) {
+            .two-col { grid-template-columns: 1fr; }
+        }
+
+        /* ===========================================
+           THREE-COLUMN CARDS
+           =========================================== */
+        .three-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.5rem, 1.5vw, 1.2rem);
+            max-width: min(92vw, 1000px);
+        }
+        @media (max-width: 768px) {
+            .three-cards { grid-template-columns: 1fr; }
+        }
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: clamp(8px, 1vw, 12px);
+            padding: clamp(0.8rem, 1.5vw, 1.5rem);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.3rem, 0.8vh, 0.6rem);
+        }
+        .info-card .card-label {
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .info-card h3 {
+            font-family: var(--font-heading);
+            font-size: var(--h3-size);
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+        .info-card p {
+            font-size: var(--small-size);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* ===========================================
+           TABLE STYLES
+           =========================================== */
+        .slide-table {
+            width: min(90vw, 900px);
+            border-collapse: collapse;
+            font-size: var(--small-size);
+        }
+        .slide-table th {
+            background: var(--bg-card);
+            color: var(--accent);
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            text-align: left;
+            padding: clamp(0.4rem, 1vw, 0.8rem) clamp(0.5rem, 1.2vw, 1rem);
+            border-bottom: 2px solid var(--accent);
+        }
+        .slide-table td {
+            padding: clamp(0.35rem, 0.8vw, 0.65rem) clamp(0.5rem, 1.2vw, 1rem);
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary);
+            vertical-align: top;
+        }
+        .slide-table td:first-child {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        .slide-table tr:last-child td {
+            border-bottom: none;
+        }
+        .slide-table .highlight-cell {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* ===========================================
+           TAG / BADGE
+           =========================================== */
+        .tag {
+            display: inline-block;
+            padding: clamp(0.15rem, 0.3vw, 0.25rem) clamp(0.4rem, 0.8vw, 0.6rem);
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            font-weight: 600;
+            letter-spacing: 0.05em;
+        }
+        .tag-strength { background: rgba(0, 212, 170, 0.15); color: var(--accent); }
+        .tag-weakness { background: rgba(255, 107, 74, 0.15); color: var(--accent-warm); }
+        .tag-ai { background: rgba(167, 139, 250, 0.15); color: var(--accent-purple); }
+        .tag-condition { background: rgba(77, 139, 255, 0.15); color: var(--accent-blue); }
+
+        /* ===========================================
+           CONCLUSION / FINAL SLIDES
+           =========================================== */
+        .conclusion-points {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.6rem, 1.5vh, 1.2rem);
+            max-width: min(85vw, 800px);
+        }
+        .conclusion-item {
+            display: flex;
+            align-items: flex-start;
+            gap: clamp(0.5rem, 1.2vw, 1rem);
+        }
+        .conclusion-num {
+            font-family: var(--font-mono);
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1.2;
+            flex-shrink: 0;
+            min-width: clamp(1.5rem, 3vw, 2.5rem);
+        }
+        .conclusion-text {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+        .conclusion-text strong {
+            color: var(--text-primary);
+        }
+
+        /* ===========================================
+           FORMULA / RECOMMENDATION BOX
+           =========================================== */
+        .formula-box {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.08), rgba(77, 139, 255, 0.08));
+            border: 1px solid rgba(0, 212, 170, 0.2);
+            border-radius: clamp(8px, 1vw, 16px);
+            padding: clamp(1rem, 2vw, 2rem) clamp(1.5rem, 3vw, 2.5rem);
+            max-width: min(85vw, 800px);
+        }
+        .formula-box .formula-label {
+            font-family: var(--font-mono);
+            font-size: var(--label-size);
+            color: var(--accent);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: clamp(0.4rem, 1vh, 0.8rem);
+        }
+        .formula-box p {
+            font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-weight: 500;
+        }
+        .formula-box p + p {
+            margin-top: clamp(0.3rem, 0.6vh, 0.5rem);
+        }
+
+        /* ===========================================
+           GLOW ACCENT DECORATIONS
+           =========================================== */
+        .glow-tl::after {
+            content: '';
+            position: absolute;
+            width: clamp(150px, 30vw, 400px);
+            height: clamp(150px, 30vw, 400px);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 212, 170, 0.08) 0%, transparent 70%);
+            top: -10%;
+            left: -5%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .glow-br::after {
+            content: '';
+            position: absolute;
+            width: clamp(150px, 30vw, 400px);
+            height: clamp(150px, 30vw, 400px);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(77, 139, 255, 0.08) 0%, transparent 70%);
+            bottom: -10%;
+            right: -5%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===========================================
+           DIVIDER LINE
+           =========================================== */
+        .divider {
+            width: clamp(30px, 5vw, 60px);
+            height: 3px;
+            background: var(--accent);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Progress bar -->
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- Navigation dots -->
+    <nav class="nav-dots" id="navDots" aria-label="슬라이드 네비게이션"></nav>
+
+    <!-- ===========================================
+         SLIDE 1: TITLE
+         =========================================== -->
+    <section class="slide title-slide" aria-label="표지">
+        <div class="slide-content">
+<img class="title-logo reveal" src="data:image/png;base64,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" alt="VWAY">
+            <span class="title-badge reveal">2026 스마트 의료 안전 컨퍼런스</span>
+            <h1 class="reveal">SaMD 제조업체의<br>사이버보안 관리체계<br>구축·운영 어프로치 분석</h1>
+            <div class="divider reveal"></div>
+            <p class="title-subtitle reveal">제품의 보안성과 조직의 운영체계를 동시에 달성하기 위한 전략적 접근법</p>
+            <p class="title-meta reveal">강의 초반부 — 구조적 분석</p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 2: 왜 지금 이 논의인가
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="배경">
+        <div class="slide-header"><span class="slide-number">01</span><span class="section-label">들어가며</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">왜 <span class="accent">지금</span> 이 논의인가</h2>
+            <ul class="bullets reveal">
+                <li><strong>2025.01</strong> 디지털의료제품법 시행</li>
+                <li><strong>2025.04</strong> 식약처 「디지털의료기기 전자적 침해행위 보안지침」 고시</li>
+                <li>심사 업무지침서 · 민원인 가이드라인 연이어 발행</li>
+            </ul>
+            <div class="highlight-card reveal">
+                <p>사이버보안은 더 이상 품질활동의 하위 항목이 아니라<br><strong>허가·변경관리·사후관리와 직접 연결된 규제 대응 영역</strong>이 되었습니다.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 3: 핵심 메시지
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="핵심 메시지">
+        <div class="slide-header"><span class="slide-number">02</span><span class="section-label">핵심 질문</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">제조업체의 <span class="accent">선택지</span></h2>
+            <div class="quote-block reveal">
+                <p>"제품의 보안성"과 "조직의 운영체계"가 동시에 요구되며,<br>심사 제출자료와 실제 운영이 일치해야 한다.</p>
+            </div>
+            <div class="divider reveal"></div>
+            <p class="reveal" style="font-size: var(--body-size); color: var(--text-secondary); max-width: min(85vw, 700px);">
+                "보안 기능을 넣느냐"가 아니라<br>
+                <strong style="color: var(--accent); font-size: clamp(1rem, 2vw, 1.3rem);">"어떤 어프로치로 관리체계를 도입하고 운영할 것인가"</strong>
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 4: 분석 프레임 — 두 축, 세 옵션
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="분석 프레임">
+        <div class="slide-header"><span class="slide-number">03</span><span class="section-label">프레임워크</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">분석 프레임 — <span class="accent">두 축</span>, 세 옵션</h2>
+            <table class="slide-table reveal-scale">
+                <thead>
+                    <tr>
+                        <th>구분</th>
+                        <th>도입(Build) 단계</th>
+                        <th>운영(Operate) 단계</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>옵션 1</td>
+                        <td>자체 수립</td>
+                        <td>자체 운영</td>
+                    </tr>
+                    <tr>
+                        <td>옵션 2</td>
+                        <td>외부 전문가 조력 수립</td>
+                        <td>외부 전문가 운영 대행</td>
+                    </tr>
+                    <tr>
+                        <td>옵션 3</td>
+                        <td>AI 활용</td>
+                        <td>AI 적용</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="highlight-card blue reveal" style="margin-top: var(--element-gap);">
+                <p>옵션 1·2는 <strong>"주체"</strong>의 문제, 옵션 3(AI)은 <strong>"수단"</strong>의 문제<br>
+                → AI는 단독 어프로치가 아닌 1과 2를 <strong>가속·보강하는 레이어</strong></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 5: 도입 — 자체 수립
+         =========================================== -->
+    <section class="slide content-slide" aria-label="자체 수립">
+        <div class="slide-header"><span class="slide-number">04</span><span class="section-label">도입 어프로치</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">도입 ① <span class="accent">자체 수립</span></h2>
+            <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--element-gap);">내부 인력이 정책·절차·양식·운영기준을 직접 설계·정착</p>
+            <div class="two-col reveal">
+                <div>
+                    <span class="tag tag-strength">강점</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li>제품 아키텍처·SDLC에 최적화 설계</li>
+                        <li>장기적 내재화, 외부 의존도 최소화</li>
+                        <li>초기 컨설팅 비용 절감</li>
+                    </ul>
+                </div>
+                <div>
+                    <span class="tag tag-weakness">약점</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li>규제 해석 오류 리스크 (IEC 62304 등)</li>
+                        <li>수립 기간 장기화 (6~12개월)</li>
+                        <li>"문서는 있으나 운영 안 되는" 형식화 위험</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="reveal" style="margin-top: var(--element-gap);">
+                <span class="tag tag-condition">적합 조건</span>
+                <p style="font-size: var(--small-size); color: var(--text-secondary); margin-top: clamp(0.2rem, 0.4vh, 0.3rem);">RA/QA·SW개발 리더 내부 보유, 제품 수 적음, 장기 내재화 지향 조직</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 6: 도입 — 외부 전문가 조력 수립
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="외부 조력 수립">
+        <div class="slide-header"><span class="slide-number">05</span><span class="section-label">도입 어프로치</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">도입 ② <span class="accent">외부 전문가 조력</span> 수립</h2>
+            <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--element-gap);">컨설팅사 도움으로 단기 구축, 운영 주체는 내부 유지</p>
+            <div class="two-col reveal">
+                <div>
+                    <span class="tag tag-strength">강점</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li>법령·고시·심사 기대수준 즉시 반영</li>
+                        <li>3자 관점 Gap 분석으로 사각지대 해소</li>
+                        <li>수립 기간 단축 (3~6개월)</li>
+                    </ul>
+                </div>
+                <div>
+                    <span class="tag tag-weakness">약점</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li>초기 비용 발생</li>
+                        <li>외부 산출물과 내부 현실 괴리 가능</li>
+                        <li>내부 온보딩 약하면 운영 전환 실패</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="highlight-card reveal" style="margin-top: var(--element-gap);">
+                <p><strong>성공 조건:</strong> "문서 대신 써주는" 구조 ✕ → 내부 실무자 워크숍 기반 <strong>공동 설계</strong></p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 7: 도입 — AI 활용
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="AI 활용">
+        <div class="slide-header"><span class="slide-number">06</span><span class="section-label">도입 어프로치</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">도입 ③ <span class="accent">AI 활용</span></h2>
+            <p class="reveal" style="color: var(--accent-purple); font-weight: 500; margin-bottom: var(--element-gap);">수립을 대체하지 않고 가속한다</p>
+            <div class="two-col reveal">
+                <div>
+                    <span class="tag tag-ai">효과적 활용 영역</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li>법령·고시 기반 Gap 분석 자동화</li>
+                        <li>정책서·절차서·체크리스트 초안 생성 <strong style="color: var(--accent);">(60~80% 단축)</strong></li>
+                        <li>STRIDE/TARA 위협 시나리오 초안 도출</li>
+                        <li>심사 제출자료 간 정합성 점검</li>
+                    </ul>
+                </div>
+                <div>
+                    <span class="tag tag-weakness">한계와 통제</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li>규제 해석 최종 판단 → <strong>사람 책임</strong></li>
+                        <li>민감 설계정보 입력 통제 필요</li>
+                        <li>AI 산출물도 <strong>검토·승인 절차 필수</strong></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 8: 운영 — 자체 운영
+         =========================================== -->
+    <section class="slide content-slide" aria-label="자체 운영">
+        <div class="slide-header"><span class="slide-number">07</span><span class="section-label">운영 어프로치</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">운영 ① <span class="accent">자체 운영</span></h2>
+            <p class="reveal" style="color: var(--text-secondary); margin-bottom: var(--element-gap);">취약점 모니터링, 변경 검토, 사고 대응, 문서 유지관리를 내부 수행</p>
+            <div class="two-col reveal">
+                <div>
+                    <span class="tag tag-strength">강점</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li>제품·고객·배포환경 깊은 이해</li>
+                        <li>개발·QA·CS와 자연스러운 연계</li>
+                        <li>역량의 조직 내 축적</li>
+                    </ul>
+                </div>
+                <div>
+                    <span class="tag tag-weakness">약점</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li>24/7 모니터링 체계 유지 어려움</li>
+                        <li>고급 보안 분석 인력 채용·유지 고정비</li>
+                        <li>일상업무에 밀려 정기점검 형식화</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 9: 운영 — 외부 전문가 운영 대행
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="외부 운영 대행">
+        <div class="slide-header"><span class="slide-number">08</span><span class="section-label">운영 어프로치</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">운영 ② <span class="accent">외부 전문가</span> 운영 대행</h2>
+            <div class="two-col reveal">
+                <div>
+                    <span class="tag tag-strength">강점</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li>24/7 SOC, 최신 위협 인텔리전스</li>
+                        <li>내부 인력 부족 완화</li>
+                        <li>객관적 점검으로 사각지대 해소</li>
+                    </ul>
+                </div>
+                <div>
+                    <span class="tag tag-weakness">약점</span>
+                    <ul class="bullets" style="margin-top: clamp(0.3rem, 0.6vh, 0.5rem);">
+                        <li>지속적 구독·위탁 비용</li>
+                        <li>제품·임상 맥락 이해 부족 시 오탐 증가</li>
+                        <li><strong style="color: var(--accent-warm);">법적 책임은 제조업자에게 귀속</strong></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="highlight-card orange reveal" style="margin-top: var(--content-gap);">
+                <p><strong>현실적 모델:</strong> 완전 대행보다 <strong>부분 대행형</strong> — 월간 취약점 모니터링, 분기 정기점검, 반기 문서 갱신 리뷰</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 10: 운영 — AI 적용
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="AI 적용">
+        <div class="slide-header"><span class="slide-number">09</span><span class="section-label">운영 어프로치</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">운영 ③ <span class="accent">AI 적용</span></h2>
+            <p class="reveal" style="color: var(--accent-purple); font-weight: 500; margin-bottom: var(--element-gap);">운영 단계는 AI의 효과가 가장 크게 나타나는 영역</p>
+            <ul class="bullets reveal">
+                <li><strong>SBOM + CVE 자동 매칭</strong> — 컴포넌트·신규 CVE 자동 대조, CVSS 기반 우선순위 알림</li>
+                <li><strong>AI 이상 탐지</strong> — 접근 로그·API 호출 패턴 정상 베이스라인 학습, 편차 탐지</li>
+                <li><strong>사고 대응 어시스턴트</strong> — 플레이북 가이드, 식약처 신고 양식 초안</li>
+                <li><strong>정기 보고서 자동화</strong> — 취약점·패치·사고 이력 집계, 보고서 초안</li>
+                <li><strong>변경영향분석 보조</strong> — 변경요청서↔위험평가서 영향항목 자동 추출</li>
+            </ul>
+            <p class="reveal" style="font-size: var(--small-size); color: var(--accent-warm); margin-top: var(--element-gap);">
+                ⚠ AI는 "보조" — 최종 판단(배포 중단, 사고 판정, 대외 통지)은 반드시 사람이 수행 (Human-in-the-Loop)
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 11: 도입 단계 비교 요약
+         =========================================== -->
+    <section class="slide content-slide" aria-label="도입 비교">
+        <div class="slide-header"><span class="slide-number">10</span><span class="section-label">비교 요약</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">도입 단계 <span class="accent">비교 요약</span></h2>
+            <table class="slide-table reveal-scale">
+                <thead>
+                    <tr>
+                        <th>기준</th>
+                        <th>자체 수립</th>
+                        <th>외부 조력 수립</th>
+                        <th>AI 활용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>초기 속도</td>
+                        <td>느림</td>
+                        <td>빠름</td>
+                        <td class="highlight-cell">매우 빠름</td>
+                    </tr>
+                    <tr>
+                        <td>규제 해석 정확도</td>
+                        <td>내부 역량 의존</td>
+                        <td class="highlight-cell">높음</td>
+                        <td>검토 없으면 불안정</td>
+                    </tr>
+                    <tr>
+                        <td>내재화 수준</td>
+                        <td class="highlight-cell">높음</td>
+                        <td>중~높음</td>
+                        <td>낮음~중</td>
+                    </tr>
+                    <tr>
+                        <td>문서 품질 일관성</td>
+                        <td>편차 큼</td>
+                        <td>비교적 높음</td>
+                        <td class="highlight-cell">매우 높음</td>
+                    </tr>
+                    <tr>
+                        <td>단독 권장도</td>
+                        <td>제한적</td>
+                        <td class="highlight-cell">가장 권장</td>
+                        <td>보조수단</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 12: 운영 단계 비교 요약
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="운영 비교">
+        <div class="slide-header"><span class="slide-number">11</span><span class="section-label">비교 요약</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">운영 단계 <span class="accent">비교 요약</span></h2>
+            <table class="slide-table reveal-scale">
+                <thead>
+                    <tr>
+                        <th>기준</th>
+                        <th>자체 운영</th>
+                        <th>외부 운영 대행</th>
+                        <th>AI 적용</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>제품 이해도</td>
+                        <td class="highlight-cell">매우 높음</td>
+                        <td>중간</td>
+                        <td>낮음</td>
+                    </tr>
+                    <tr>
+                        <td>지속 가능성</td>
+                        <td>인력 확보 시 높음</td>
+                        <td>계약 의존</td>
+                        <td>운영체계 의존</td>
+                    </tr>
+                    <tr>
+                        <td>전문분석 깊이</td>
+                        <td>편차 큼</td>
+                        <td class="highlight-cell">높음</td>
+                        <td>보조적</td>
+                    </tr>
+                    <tr>
+                        <td>비용 구조</td>
+                        <td>인건비 중심</td>
+                        <td>용역비 중심</td>
+                        <td>도구·통제비</td>
+                    </tr>
+                    <tr>
+                        <td>단독 권장도</td>
+                        <td class="highlight-cell">필수 기반</td>
+                        <td>부분 대행 권장</td>
+                        <td>강한 보조수단</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 13: 결론 — 어느 하나만으로는 부족하다
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="결론">
+        <div class="slide-header"><span class="slide-number">12</span><span class="section-label">결론</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">어느 하나만으로는 <span class="accent">부족하다</span></h2>
+            <div class="conclusion-points reveal">
+                <div class="conclusion-item">
+                    <span class="conclusion-num">1</span>
+                    <p class="conclusion-text"><strong>자체만으로는 느리고 위험하다</strong> — 규제 해석 편차, 수립 기간, 전문성 공백</p>
+                </div>
+                <div class="conclusion-item">
+                    <span class="conclusion-num">2</span>
+                    <p class="conclusion-text"><strong>외부만으로는 내재화가 안 된다</strong> — 문서는 완성되나 운영은 공회전</p>
+                </div>
+                <div class="conclusion-item">
+                    <span class="conclusion-num">3</span>
+                    <p class="conclusion-text"><strong>AI만으로는 책임을 질 수 없다</strong> — 가속기일 뿐, 판단과 승인은 사람의 몫</p>
+                </div>
+            </div>
+            <div class="divider reveal"></div>
+            <p class="reveal" style="font-size: clamp(0.9rem, 1.6vw, 1.15rem); color: var(--text-primary); font-weight: 600; max-width: min(85vw, 700px);">
+                "하나를 선택하는" 문제가 아니라<br>
+                <span style="color: var(--accent);">"어떻게 조합할 것인가"</span>의 문제
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 14: 최적 조합 제안
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="최적 조합">
+        <div class="slide-header"><span class="slide-number">13</span><span class="section-label">제안</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">최적 <span class="accent">조합</span> 제안</h2>
+            <div class="formula-box reveal">
+                <div class="formula-label">도입 단계</div>
+                <p>외부 전문가 조력 <span style="color: var(--accent);">+</span> AI 가속 <span style="color: var(--accent);">+</span> 내부 책임 승인</p>
+            </div>
+            <div class="formula-box reveal" style="margin-top: var(--element-gap);">
+                <div class="formula-label">운영 단계</div>
+                <p>자체 운영 중심 <span style="color: var(--accent);">+</span> 외부 부분 대행 <span style="color: var(--accent);">+</span> AI 자동화</p>
+            </div>
+            <div class="divider reveal" style="margin-top: var(--content-gap);"></div>
+            <p class="reveal" style="font-size: var(--small-size); color: var(--text-secondary); max-width: min(85vw, 700px);">
+                최적해는 기업 규모, 보안 성숙도, 규제 대응 시급성에 따라 달라집니다.<br>
+                <strong style="color: var(--text-primary);">이어지는 중반부에서는 컨설팅사들의 대응 방식을 분석합니다.</strong>
+            </p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+       JAVASCRIPT: SLIDE CONTROLLER
+       =========================================== -->
+    <script>
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           Handles navigation, animations, progress
+           =========================================== */
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.isScrolling = false;
+                this.scrollTimeout = null;
+
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupWheelNav();
+                this.setupProgressBar();
+                this.setupNavDots();
+
+                /* Make first slide visible immediately */
+                this.slides[0].classList.add('visible');
+            }
+
+            /* --- Intersection Observer for scroll-triggered animations --- */
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const idx = Array.from(this.slides).indexOf(entry.target);
+                            if (idx !== -1) {
+                                this.currentSlide = idx;
+                                this.updateProgressBar();
+                                this.updateNavDots();
+                            }
+                        }
+                    });
+                }, { threshold: 0.5 });
+
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            /* --- Keyboard: arrows, space, page up/down --- */
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    switch(e.key) {
+                        case 'ArrowDown':
+                        case 'ArrowRight':
+                        case ' ':
+                        case 'PageDown':
+                            e.preventDefault();
+                            this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                            break;
+                        case 'ArrowUp':
+                        case 'ArrowLeft':
+                        case 'PageUp':
+                            e.preventDefault();
+                            this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                            break;
+                        case 'Home':
+                            e.preventDefault();
+                            this.goToSlide(0);
+                            break;
+                        case 'End':
+                            e.preventDefault();
+                            this.goToSlide(this.slides.length - 1);
+                            break;
+                    }
+                });
+            }
+
+            /* --- Touch / swipe support --- */
+            setupTouchNav() {
+                let startY = 0;
+                let startX = 0;
+
+                document.addEventListener('touchstart', (e) => {
+                    startY = e.touches[0].clientY;
+                    startX = e.touches[0].clientX;
+                }, { passive: true });
+
+                document.addEventListener('touchend', (e) => {
+                    const deltaY = startY - e.changedTouches[0].clientY;
+                    const deltaX = startX - e.changedTouches[0].clientX;
+
+                    /* Only trigger on primarily vertical swipes */
+                    if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > 50) {
+                        if (deltaY > 0) {
+                            this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                        } else {
+                            this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                        }
+                    }
+                }, { passive: true });
+            }
+
+            /* --- Mouse wheel navigation --- */
+            setupWheelNav() {
+                document.addEventListener('wheel', (e) => {
+                    if (this.isScrolling) return;
+                    this.isScrolling = true;
+
+                    if (e.deltaY > 0) {
+                        this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                    } else {
+                        this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                    }
+
+                    clearTimeout(this.scrollTimeout);
+                    this.scrollTimeout = setTimeout(() => {
+                        this.isScrolling = false;
+                    }, 800);
+                }, { passive: true });
+            }
+
+            /* --- Progress bar --- */
+            setupProgressBar() {
+                this.progressBar = document.getElementById('progressBar');
+                this.updateProgressBar();
+            }
+
+            updateProgressBar() {
+                if (!this.progressBar) return;
+                const pct = ((this.currentSlide + 1) / this.slides.length) * 100;
+                this.progressBar.style.width = pct + '%';
+            }
+
+            /* --- Navigation dots --- */
+            setupNavDots() {
+                const container = document.getElementById('navDots');
+                if (!container) return;
+
+                this.slides.forEach((_, i) => {
+                    const dot = document.createElement('button');
+                    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+                    dot.setAttribute('aria-label', `슬라이드 ${i + 1}`);
+                    dot.addEventListener('click', () => this.goToSlide(i));
+                    container.appendChild(dot);
+                });
+
+                this.dots = container.querySelectorAll('.nav-dot');
+            }
+
+            updateNavDots() {
+                if (!this.dots) return;
+                this.dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === this.currentSlide);
+                });
+            }
+
+            /* --- Navigate to a specific slide --- */
+            goToSlide(index) {
+                if (index < 0 || index >= this.slides.length) return;
+                this.currentSlide = index;
+                this.slides[index].scrollIntoView({ behavior: 'smooth' });
+                this.updateProgressBar();
+                this.updateNavDots();
+            }
+        }
+
+        /* Initialize on DOM ready */
+        document.addEventListener('DOMContentLoaded', () => {
+            new SlidePresentation();
+        });
+    </script>
+</body>
+</html>

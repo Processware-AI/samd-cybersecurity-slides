@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실질적 대응 방안 — SaMD 사이버보안</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Noto+Sans+KR:wght@300;400;500;700;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===========================================
+           CSS CUSTOM PROPERTIES (THEME)
+           Medical-Cyber Dark: deep navy + teal accent
+           =========================================== */
+        :root {
+            --bg-primary: #0b1120;
+            --bg-secondary: #111d35;
+            --bg-card: #162040;
+            --bg-gradient: linear-gradient(145deg, #0b1120 0%, #111d35 40%, #0b1120 100%);
+            --text-primary: #e8ecf4;
+            --text-secondary: #8a9bb7;
+            --text-muted: #5a6d8a;
+            --accent: #00d4aa;
+            --accent-glow: rgba(0, 212, 170, 0.25);
+            --accent-warm: #ff6b4a;
+            --accent-blue: #4d8bff;
+            --accent-purple: #a78bfa;
+            --card-orange: #ff7849;
+            --card-teal: #00d4aa;
+            --card-blue: #4d8bff;
+            --border-subtle: rgba(255, 255, 255, 0.06);
+
+            --font-display: 'Archivo Black', 'Noto Sans KR', sans-serif;
+            --font-heading: 'Noto Sans KR', sans-serif;
+            --font-body: 'Noto Sans KR', 'Space Grotesk', sans-serif;
+            --font-mono: 'Space Grotesk', monospace;
+            --title-size: clamp(1.8rem, 5vw, 3.8rem);
+            --h2-size: clamp(1.3rem, 3.5vw, 2.4rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.5rem);
+            --body-size: clamp(0.75rem, 1.4vw, 1.05rem);
+            --small-size: clamp(0.65rem, 1vw, 0.85rem);
+            --label-size: clamp(0.6rem, 0.9vw, 0.75rem);
+
+            --slide-padding: clamp(1.5rem, 4vw, 4rem);
+            --content-gap: clamp(0.75rem, 2vw, 2rem);
+            --element-gap: clamp(0.25rem, 1vw, 1rem);
+
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --duration-normal: 0.6s;
+        }
+
+        /* === BASE RESET === */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* === VIEWPORT FITTING === */
+        html, body { height: 100%; overflow-x: hidden; }
+        html { scroll-snap-type: y mandatory; scroll-behavior: smooth; }
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+        }
+        .slide {
+            width: 100vw; height: 100vh; height: 100dvh;
+            overflow: hidden; scroll-snap-align: start;
+            display: flex; flex-direction: column; position: relative;
+        }
+        .slide-content {
+            flex: 1; display: flex; flex-direction: column;
+            justify-content: center; max-height: 100%;
+            overflow: hidden; padding: var(--slide-padding);
+        }
+        img, .image-container { max-width: 100%; max-height: min(50vh, 400px); object-fit: contain; }
+
+        /* === RESPONSIVE BREAKPOINTS === */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --h2-size: clamp(1rem, 3vw, 1.75rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+            .nav-dots, .keyboard-hint, .decorative { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+        @media (max-width: 600px) {
+            :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+            .two-col, .card-grid.cols-2, .card-grid.cols-3 { grid-template-columns: 1fr; }
+        }
+
+        /* === REDUCED MOTION === */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+            html { scroll-behavior: auto; }
+        }
+
+        /* === ANIMATIONS === */
+        .reveal {
+            opacity: 0; transform: translateY(25px);
+            transition: opacity var(--duration-normal) var(--ease-out-expo),
+                        transform var(--duration-normal) var(--ease-out-expo);
+        }
+        .slide.visible .reveal { opacity: 1; transform: translateY(0); }
+        .reveal:nth-child(1) { transition-delay: 0.1s; }
+        .reveal:nth-child(2) { transition-delay: 0.2s; }
+        .reveal:nth-child(3) { transition-delay: 0.3s; }
+        .reveal:nth-child(4) { transition-delay: 0.4s; }
+        .reveal:nth-child(5) { transition-delay: 0.5s; }
+        .reveal:nth-child(6) { transition-delay: 0.6s; }
+        .reveal-scale {
+            opacity: 0; transform: scale(0.92);
+            transition: opacity 0.7s var(--ease-out-expo), transform 0.7s var(--ease-out-expo);
+        }
+        .slide.visible .reveal-scale { opacity: 1; transform: scale(1); }
+
+        /* === PROGRESS BAR === */
+        .progress-bar {
+            position: fixed; top: 0; left: 0; height: 3px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-warm));
+            z-index: 1000; transition: width 0.3s ease; width: 0%;
+        }
+
+        /* === NAVIGATION DOTS === */
+        .nav-dots {
+            position: fixed; right: clamp(0.75rem, 2vw, 1.5rem);
+            top: 50%; transform: translateY(-50%);
+            display: flex; flex-direction: column;
+            gap: clamp(6px, 0.8vh, 10px); z-index: 100;
+        }
+        .nav-dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--text-muted); cursor: pointer;
+            transition: all 0.3s ease; border: none; padding: 0;
+        }
+        .nav-dot.active {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent-glow);
+            transform: scale(1.3);
+        }
+
+        /* === SLIDE HEADER (number + label side by side) === */
+        .slide-header {
+            position: absolute;
+            top: clamp(1rem, 3vw, 2rem);
+            left: clamp(1.5rem, 4vw, 4rem);
+            display: flex; align-items: baseline;
+            gap: clamp(0.5rem, 1vw, 1rem);
+            z-index: 2; user-select: none;
+        }
+        .slide-number {
+            font-family: var(--font-mono);
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.04);
+            line-height: 1;
+        }
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.04);
+            line-height: 1; white-space: nowrap;
+        }
+
+        /* === GRID BACKGROUND === */
+        .slide::before {
+            content: ''; position: absolute; inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none; z-index: 0;
+        }
+        .slide > * { position: relative; z-index: 1; }
+
+        /* === TITLE SLIDE === */
+        .title-slide {
+            background: var(--bg-gradient);
+            justify-content: center; align-items: center; text-align: center;
+        }
+        .title-slide .slide-content { align-items: center; gap: clamp(1rem, 3vh, 2.5rem); }
+        .title-badge {
+            display: inline-block;
+            padding: clamp(0.3rem, 0.6vw, 0.5rem) clamp(0.8rem, 1.5vw, 1.2rem);
+            border: 1px solid var(--accent-warm);
+            border-radius: 100px;
+            font-family: var(--font-mono); font-size: var(--small-size);
+            color: var(--accent-warm); letter-spacing: 0.1em;
+        }
+        .title-slide h1 {
+            font-family: var(--font-heading); font-size: var(--title-size);
+            font-weight: 900; line-height: 1.15; max-width: min(85vw, 900px);
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-warm) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .title-subtitle {
+            font-size: clamp(0.85rem, 1.8vw, 1.2rem);
+            color: var(--text-secondary); max-width: min(80vw, 700px); line-height: 1.6;
+        }
+        .title-meta { font-size: var(--small-size); color: var(--text-muted); letter-spacing: 0.05em; }
+
+        .title-slide::after {
+            content: ''; position: absolute;
+            width: clamp(200px, 40vw, 500px); height: clamp(200px, 40vw, 500px);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 107, 74, 0.12) 0%, transparent 70%);
+            bottom: 5%; left: -8%; pointer-events: none; z-index: 0;
+        }
+
+        /* === CONTENT SLIDES === */
+        .content-slide .slide-content {
+            gap: var(--content-gap);
+            padding-left: clamp(3rem, 8vw, 8rem);
+        }
+        .content-slide h2 {
+            font-family: var(--font-heading); font-size: var(--h2-size);
+            font-weight: 700; color: var(--text-primary); line-height: 1.2;
+        }
+        .content-slide h2 .accent { color: var(--accent); }
+        .content-slide h2 .warm { color: var(--accent-warm); }
+
+        /* === HIGHLIGHT CARD === */
+        .highlight-card {
+            background: var(--card-teal); color: #0b1120;
+            padding: clamp(1rem, 2.5vw, 2rem) clamp(1.5rem, 3vw, 2.5rem);
+            border-radius: clamp(8px, 1vw, 16px);
+            max-width: min(85vw, 750px); font-weight: 500;
+        }
+        .highlight-card.orange { background: var(--card-orange); }
+        .highlight-card.blue { background: var(--card-blue); color: #fff; }
+        .highlight-card.warm-subtle {
+            background: linear-gradient(135deg, rgba(255, 107, 74, 0.12), rgba(255, 120, 73, 0.08));
+            border: 1px solid rgba(255, 107, 74, 0.25); color: var(--text-primary);
+        }
+        .highlight-card p { font-size: clamp(0.85rem, 1.6vw, 1.15rem); line-height: 1.6; }
+
+        /* === QUOTE BLOCK === */
+        .quote-block {
+            border-left: 3px solid var(--accent-warm);
+            padding-left: clamp(1rem, 2vw, 2rem);
+            max-width: min(85vw, 750px);
+        }
+        .quote-block p {
+            font-size: clamp(0.9rem, 1.8vw, 1.25rem);
+            font-weight: 500; line-height: 1.6; color: var(--text-primary);
+        }
+
+        /* === BULLET LIST === */
+        .bullets {
+            list-style: none; display: flex; flex-direction: column;
+            gap: clamp(0.4rem, 1vh, 0.8rem); max-width: min(85vw, 750px);
+        }
+        .bullets li {
+            font-size: var(--body-size); line-height: 1.5;
+            color: var(--text-secondary);
+            padding-left: clamp(1rem, 2vw, 1.5rem); position: relative;
+        }
+        .bullets li::before {
+            content: ''; position: absolute; left: 0;
+            top: clamp(0.4rem, 0.7vw, 0.55rem);
+            width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+        }
+        .bullets li strong { color: var(--text-primary); font-weight: 600; }
+
+        /* === TWO-COLUMN === */
+        .two-col {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: clamp(1rem, 3vw, 3rem); max-width: min(90vw, 1000px);
+        }
+        @media (max-width: 768px) { .two-col { grid-template-columns: 1fr; } }
+
+        /* === INFO CARD === */
+        .card-grid {
+            display: grid; gap: clamp(0.5rem, 1.5vw, 1.2rem);
+            max-width: min(92vw, 1000px);
+        }
+        .card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+        .card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+        @media (max-width: 768px) { .card-grid.cols-3 { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px) { .card-grid.cols-2, .card-grid.cols-3 { grid-template-columns: 1fr; } }
+        .info-card {
+            background: var(--bg-card); border: 1px solid var(--border-subtle);
+            border-radius: clamp(8px, 1vw, 12px);
+            padding: clamp(0.8rem, 1.5vw, 1.5rem);
+            display: flex; flex-direction: column; gap: clamp(0.2rem, 0.5vh, 0.4rem);
+        }
+        .info-card .card-label {
+            font-family: var(--font-mono); font-size: var(--label-size);
+            letter-spacing: 0.1em; text-transform: uppercase;
+        }
+        .info-card .card-label.teal { color: var(--accent); }
+        .info-card .card-label.blue { color: var(--accent-blue); }
+        .info-card .card-label.purple { color: var(--accent-purple); }
+        .info-card .card-label.orange { color: var(--accent-warm); }
+        .info-card h3 {
+            font-family: var(--font-heading); font-size: var(--h3-size);
+            font-weight: 700; color: var(--text-primary); line-height: 1.2;
+        }
+        .info-card p { font-size: var(--small-size); color: var(--text-secondary); line-height: 1.5; }
+
+        /* === TABLE === */
+        .slide-table {
+            width: min(90vw, 900px); border-collapse: collapse; font-size: var(--small-size);
+        }
+        .slide-table th {
+            background: var(--bg-card); color: var(--accent);
+            font-family: var(--font-mono); font-size: var(--label-size);
+            font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+            text-align: left;
+            padding: clamp(0.4rem, 1vw, 0.8rem) clamp(0.5rem, 1.2vw, 1rem);
+            border-bottom: 2px solid var(--accent);
+        }
+        .slide-table td {
+            padding: clamp(0.35rem, 0.8vw, 0.65rem) clamp(0.5rem, 1.2vw, 1rem);
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-secondary); vertical-align: top;
+        }
+        .slide-table td:first-child { color: var(--text-primary); font-weight: 500; }
+        .slide-table tr:last-child td { border-bottom: none; }
+
+        /* === TAGS === */
+        .tag {
+            display: inline-block;
+            padding: clamp(0.15rem, 0.3vw, 0.25rem) clamp(0.4rem, 0.8vw, 0.6rem);
+            border-radius: 4px; font-family: var(--font-mono);
+            font-size: var(--label-size); font-weight: 600; letter-spacing: 0.05em;
+        }
+        .title-logo {
+            height: clamp(48px, 7vh, 80px);
+            width: auto;
+            object-fit: contain;
+            border-radius: 50%;
+            padding: clamp(4px, 0.8vh, 8px) clamp(8px, 1.5vw, 16px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        .tag-coach { background: rgba(0, 212, 170, 0.15); color: var(--accent); }
+        .tag-build { background: rgba(77, 139, 255, 0.15); color: var(--accent-blue); }
+        .tag-ai { background: rgba(167, 139, 250, 0.15); color: var(--accent-purple); }
+        .tag-warm { background: rgba(255, 107, 74, 0.15); color: var(--accent-warm); }
+
+        /* === CONCLUSION ITEMS === */
+        .conclusion-points {
+            display: flex; flex-direction: column;
+            gap: clamp(0.6rem, 1.5vh, 1.2rem); max-width: min(85vw, 800px);
+        }
+        .conclusion-item { display: flex; align-items: flex-start; gap: clamp(0.5rem, 1.2vw, 1rem); }
+        .conclusion-num {
+            font-family: var(--font-mono);
+            font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+            font-weight: 700; color: var(--accent-warm);
+            line-height: 1.2; flex-shrink: 0; min-width: clamp(1.5rem, 3vw, 2.5rem);
+        }
+        .conclusion-text { font-size: var(--body-size); color: var(--text-secondary); line-height: 1.5; }
+        .conclusion-text strong { color: var(--text-primary); }
+
+        /* === FORMULA BOX === */
+        .formula-box {
+            background: linear-gradient(135deg, rgba(255, 107, 74, 0.08), rgba(0, 212, 170, 0.08));
+            border: 1px solid rgba(255, 107, 74, 0.2);
+            border-radius: clamp(8px, 1vw, 16px);
+            padding: clamp(1rem, 2vw, 2rem) clamp(1.5rem, 3vw, 2.5rem);
+            max-width: min(85vw, 800px);
+        }
+        .formula-box .formula-label {
+            font-family: var(--font-mono); font-size: var(--label-size);
+            color: var(--accent-warm); letter-spacing: 0.15em; text-transform: uppercase;
+            margin-bottom: clamp(0.4rem, 1vh, 0.8rem);
+        }
+        .formula-box p {
+            font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+            color: var(--text-primary); line-height: 1.6; font-weight: 500;
+        }
+
+        /* === KEY MESSAGE BOX === */
+        .key-message {
+            background: var(--bg-card);
+            border-left: 3px solid var(--accent-warm);
+            padding: clamp(0.6rem, 1.2vw, 1rem) clamp(1rem, 2vw, 1.5rem);
+            border-radius: 0 clamp(6px, 0.8vw, 10px) clamp(6px, 0.8vw, 10px) 0;
+            max-width: min(85vw, 700px);
+        }
+        .key-message p {
+            font-size: var(--body-size); color: var(--text-primary);
+            font-style: italic; line-height: 1.5;
+        }
+
+        /* === GLOW DECORATIONS === */
+        .glow-tl::after {
+            content: ''; position: absolute;
+            width: clamp(150px, 30vw, 400px); height: clamp(150px, 30vw, 400px);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 107, 74, 0.06) 0%, transparent 70%);
+            top: -10%; left: -5%; pointer-events: none; z-index: 0;
+        }
+        .glow-br::after {
+            content: ''; position: absolute;
+            width: clamp(150px, 30vw, 400px); height: clamp(150px, 30vw, 400px);
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0, 212, 170, 0.06) 0%, transparent 70%);
+            bottom: -10%; right: -5%; pointer-events: none; z-index: 0;
+        }
+
+        /* === DIVIDER === */
+        .divider { width: clamp(30px, 5vw, 60px); height: 3px; background: var(--accent-warm); border-radius: 2px; }
+
+        /* === STEP CARDS === */
+        .step-list {
+            display: flex; flex-direction: column;
+            gap: clamp(0.5rem, 1.2vh, 1rem); max-width: min(85vw, 800px);
+        }
+        .step-item {
+            display: grid; grid-template-columns: auto 1fr;
+            gap: clamp(0.5rem, 1.2vw, 1rem); align-items: start;
+        }
+        .step-badge {
+            background: var(--bg-card); border: 1px solid var(--accent-warm);
+            border-radius: 6px; padding: clamp(0.15rem, 0.3vw, 0.25rem) clamp(0.4rem, 0.8vw, 0.6rem);
+            font-family: var(--font-mono); font-size: var(--label-size);
+            font-weight: 700; color: var(--accent-warm); white-space: nowrap;
+        }
+        .step-content p { font-size: var(--body-size); color: var(--text-secondary); line-height: 1.5; }
+        .step-content strong { color: var(--text-primary); }
+    </style>
+</head>
+<body>
+
+    <div class="progress-bar" id="progressBar"></div>
+    <nav class="nav-dots" id="navDots" aria-label="슬라이드 네비게이션"></nav>
+
+    <!-- ===========================================
+         SLIDE 1: TITLE
+         =========================================== -->
+    <section class="slide title-slide" aria-label="표지">
+        <div class="slide-content">
+<img class="title-logo reveal" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFgAAAAmCAYAAABAvVyFAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAiWSURBVGhD7VhpUFRXFsbojJUxs1QqMWGyDCKBcUMyWGpwkF0QoVWEwQUCQdGMDkxUFBrEkgBRIg4KGARDMeigiCJqYsAFxgQTcI2yCJYoooZNw7403Q1n6ryePu/d16DdznSVP/qrelXd7zv33Hu/e945914jMECvMBK/MOD/C4PAeoZBYD3DILCeYRBYzzAIrGcYBNYzDALrGQaB9QyDwHqGVgI7By+ANxxMuOcPbn+ExtZGsYkGalsb4BdSJzDabMc9HlkRELc/gfz83mkifFN6RtxMA92yPvjNVnfy8068DwwNDRE/oJTDK9FuxL+2TQIyhVzFyQdg8fql1KfXhmUgG5BxXFdvF0xbMpM4E7dJ0PykhfwOBxyv2h6fwOg1YhMNaCXw4cI8MHY0JcfpxzLFJhpYk7+LJj0mwhEqmu7C/cYGZoC+m/3FzTRworqUa6/2tel0GsMXVJUSh0/s+QPE1dbfBnPJdOrPzGMa1D24S3zakQx403EC8btz9hInRr+sH3zCVpCtxUIruHm7QmymAa0EvveoHiy9+dVeHhHIRcdIaOluh7FSZ5r07NS/cu8HBwchICqY/ODX0PJzq7g5g8ii/YyAZ25fJg4j+ePj/EKO2+IKF+7eID4jP4sREJ/kQ18Q/6jlEVh6zyLOLsiVIlyMH26Uc1Gutg3ZvgHkctWX8jRoJbBCqYCl4QHkfKrXDGj+eeTP6fCPxTTpl8IdIK3sJHHlFVeYryEuI4FpK8Tg0CAYx3mRr5ejXBi+V94P5p/7EW+WsJzSA4o/xWsGI65qUS2gp6+XfBz65iizCJkF2YIeVFAolWAf5Eo2ExdMhdb2x2KzYaGVwIiz5SU0EBTocOFRsQlh5dEEmvQrW9zgZmMdcW2d7eCw0o0G6/G3JdDX38e0V+P7+5VM9B6v/I7hq5vvcwuo5lMu5hP31benabzvulrAO/PMqc8jZ46RHX5VXuuX8eK5T4GHzY+IR+QWHSNfWDtSc9MZ/mnQWmClUgm2gS40EOdgd1AOKsVmIB9UgMl2X5q0bVoIDAFflHBCGxLDyQ/mxVv3ahkfnN3QEMxMWUN+Xo9ZCApRf47p64n/dfR8il4cV8AWPhUt+sQXJKE+9N8/ciUMCD7v06VF8JbzROJ3/yuVOMy9CwVtZy6fC42tTcQ/C1oLjNh7JJ1ZyWs1P4pNuBw5arM9N+nREQ5wsb5SbMIJqh4w+jtw6pDYBOrbmuDVbZ4k4Jr8RIZv7WmH0YLiFyYofg2ND5iakf1VDuQW8alg8qI/wU8t/E4I64n7usVkP9vPnnLxubJieNvlPd7XqRxmF/Ms6CRwVd0tsJBYUWfbM3cyncmVCpiRHEyTnp4UxLRXAyNMEuJNfmw+dNQYdPa1IngpXLVQ+OTdLGH43aVHiful1Am+rvmBuIKSU2DspMrzWEg7uju4sU1ZbE19Zp3gdxuI+p/uw3uelsTvyk6G9q4OmLXCjt5JQr1B/t+vRFvoJLBMPgDz1y6iDj1DvLlPSI1bLXxOHBVuDzv+ncO0F+Js2Xk+pzuZamx5/HPjScBRm+zgwtVS4nAxhPybsYuhV85Xf+tltjTGjYkR9H5Lagy9N5dYQq9g7IiolG3Em7pPhq17Y+k/5vBzZewiawOdBEbknz9JnWJBaGh6QFzSd2xUlTdUM22FaHzcxETHhsQIiuIuWS+8HDWPfI3znQafpm+nthiNv9u6gPiYc/8krvT69xS9bzmbQcnlb4nDRRIWO/FBp/puDVcQ1fzbLmb0Gw8sPX09jL020FlghUIB1r421PFnX+4kTpIlpUlbJgVx26yRgGkiMHo1+XEKdoeOrg6OEy6U0UZbGO9sCi6rPaionhAcLsZGOjNbs7Xxn5DP2X52zOmste0xWC+dQ/zHcaEahTp2f4LG3hkX5U4DvxPSBToLjMDcq+4c95q4ss1dbVwlx0lj7iysvSRupoHLVVfJD0YO5ngUa1Lih7yAq2bAG46qovqk4wknIu4o1HzwMX6BUUCs8mqfftIgRkDuYBIbSvz7vjbQ1tlGPKJ/QAZ2QfPIBsWOTN7G2OiC5xL4UuUVMHWfQoMovHgW4osP0qQtdvqJmwwLPMDM/Yjf+sXsi4fLD2rgt4K7h3dX8fl09achcOVhDXG4Szl8o5j8celBcIi5eJ0vfGpU1VVzqUNtgylPjB2ZicRjkSyr4E+PuuK5BMaInRPgRINY93kYjBdElbQwQ9xkROSdPU5+zD0tucMCFkj086soV0g5kk48RrH0633UD14CdfR3ky886qptp/vMgoFhKj5GscMq/qBj5TML+kTF7h8HkonH4/G1W5rbUW3xXAIjMgsO0CCM/2IFo9QVP9weSuqui81HRN3De7RnHe9gAq9H8tEbd/4g3G64Aybz+TuAV8NciA89uYf8VNypAmNB7kw6mML0I0Ra3n4mz164wp4QXwiB+2R9MGnR+9wgxvlZ0aTxFKccHLm4iYFpQvJ31UnpNTcz8oMXN42dqpw7J8CR41EUNY95XqbkIzRiz1YSBT9rvJwZCZcqr8KE+ZPJPmyXlNmHvxACI6R7orlBjF77AU0694bue8Vz5SWcn7GB1iSgZ5aUu+tFVNZVqxZyBb+Qvjkx1L6rt5u537Dxd4DO7k5BDywwOOZ+xBeyD/wdoLefvwB6YQQuvnQBjD0mg9EmPnqftjUbCbj1s1xqA6NDbUjApNI84jG6/hzoDEab5nIcpqF95aeIr7lXyxQ34Z56JCRm7yF7fPBIrMYLI3B7VztM2OgOY6SO3LOuYLfYRGuknsmBMZsdOD94A9c9wN6w7SjI4C7ekce97+Me1Z4ZsWT9Mu6yRv00ND1k2g4HjHoLyXRqYxvozJ1UESiw+r2Zx1S4XsPfMeuK/0lgA54Ng8B6hkFgPcMgsJ5hEFjPMAisZxgE1jMMAusZ/wEkh4urTHO+fAAAAABJRU5ErkJggg==" alt="VWAY">
+            <span class="title-badge reveal">2026 스마트 의료 안전 컨퍼런스</span>
+            <h1 class="reveal">여러분께<br>제안드리는<br>실질적 대응 방안</h1>
+            <div class="divider reveal"></div>
+            <p class="title-subtitle reveal">브이웨이가 여러분께 어떻게 조력할 수 있는지</p>
+            <p class="title-meta reveal">강의 후반부 — 실행 제안</p>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 2: 앞선 두 분석이 말해준 것
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="요약">
+        <div class="slide-header"><span class="slide-number">01</span><span class="section-label">들어가며</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">앞선 두 분석이 <span class="warm">말해준 것</span></h2>
+            <div class="two-col reveal">
+                <div class="formula-box">
+                    <div class="formula-label">초반부</div>
+                    <p>자체·외부·AI 어느 한 가지만으로는 안 된다.<br><strong>하이브리드 조합이 불가피.</strong></p>
+                </div>
+                <div class="formula-box">
+                    <div class="formula-label">중반부</div>
+                    <p>컨설팅 시장이 이미 재편 중.<br><strong>전주기·리커링·AI-Native.</strong></p>
+                </div>
+            </div>
+            <div class="divider reveal"></div>
+            <div class="quote-block reveal">
+                <p>"여러분이 직접 하든, 함께 하든, AI를 쓰든 — 규제 적합성과 운영 가능성이 중요합니다.<br>브이웨이는 그 세 가지를 모두 지원하는 <strong>하이브리드 조력자</strong>입니다."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 3: 브이웨이의 3가지 원칙
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="원칙">
+        <div class="slide-header"><span class="slide-number">02</span><span class="section-label">원칙</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">브이웨이가 일하는 <span class="warm">3가지 원칙</span></h2>
+            <div class="conclusion-points reveal">
+                <div class="conclusion-item">
+                    <span class="conclusion-num">1</span>
+                    <p class="conclusion-text"><strong>"대신 써드리는 것만 하는 회사"가 아닙니다</strong><br>
+                    여러분이 실제로 운영 가능한 형태로 남기는 것이 목표. 심사 제출 문서와 실제 운영이 분리되는 순간, 체계는 무너집니다.</p>
+                </div>
+                <div class="conclusion-item">
+                    <span class="conclusion-num">2</span>
+                    <p class="conclusion-text"><strong>IEC 62304 · ISO 14971 · ASPICE 기반 프로세스 품질 조직</strong><br>
+                    기존 QMS 위에 보안지침을 올리는 접근. 새로 쌓는 게 아니라 <span style="color: var(--accent);">기존 체계를 확장</span>합니다.</p>
+                </div>
+                <div class="conclusion-item">
+                    <span class="conclusion-num">3</span>
+                    <p class="conclusion-text"><strong>AI-Native 방식으로 일합니다</strong><br>
+                    (1) 감당 가능한 <span style="color: var(--accent);">가격대</span> (2) <span style="color: var(--accent);">품질 일관성</span> (3) 도구 이전으로 <span style="color: var(--accent);">자립 운영</span> 가능</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 4: 도입 — 코치형
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="코치형">
+        <div class="slide-header"><span class="slide-number">03</span><span class="section-label">도입</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">도입 ① <span class="accent">코치형</span> <span style="font-size: var(--body-size); color: var(--text-muted);">— "내부에서 직접 만들고 싶다"</span></h2>
+            <p class="reveal" style="color: var(--text-secondary);">여러분이 만들고, 브이웨이가 틀리지 않도록 도와드립니다</p>
+            <table class="slide-table reveal-scale">
+                <thead>
+                    <tr><th>브이웨이가 해드리는 것</th><th>형태</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>규제 요구사항 해설 워크숍</td><td>1~2일 집합 세션</td></tr>
+                    <tr><td>현행 체계 Gap 분석 진단</td><td>1주 집중 진단</td></tr>
+                    <tr><td>정책서·절차서·양식 목차 설계안</td><td>템플릿 라이브러리 기반</td></tr>
+                    <tr><td>내부 작성 문서 리뷰·보완</td><td>격주 리뷰 세션</td></tr>
+                    <tr><td>파일럿 제품 보안 요구사항 리뷰</td><td>공동 워크숍</td></tr>
+                    <tr><td>모의심사·인터뷰 대응 훈련</td><td>심사 직전 Mock Audit</td></tr>
+                </tbody>
+            </table>
+            <div class="key-message reveal">
+                <p>"여러분이 직접 만드시되, 틀리지 않게 만들도록 옆에서 받쳐드립니다."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 5: 도입 — 설계형
+         =========================================== -->
+    <section class="slide content-slide" aria-label="설계형">
+        <div class="slide-header"><span class="slide-number">04</span><span class="section-label">도입</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">도입 ② <span class="accent">설계형</span> <span style="font-size: var(--body-size); color: var(--text-muted);">— "빠르고 정확하게"</span></h2>
+            <p class="reveal" style="color: var(--text-secondary);">체계 설계자이자 구축 리드로 들어갑니다</p>
+            <ul class="bullets reveal">
+                <li>착수 진단 → 정책/절차/양식/RACI <strong>전체 체계 설계</strong></li>
+                <li>제품군 분석 기반 <strong>위협모델(TARA) 프레임</strong> 구축</li>
+                <li>취약점 관리·변경관리·사고대응·침해신고 프로세스</li>
+                <li>허가 제출용 <strong>"보호조치 자료" 패키지</strong> 정리</li>
+                <li>SBOM 생성·관리 절차와 초기 SBOM 구축</li>
+                <li>내재화 교육 · 인수인계 · 시범 운영</li>
+            </ul>
+            <div class="key-message reveal">
+                <p>"브이웨이가 설계하고, 여러분이 운영하실 수 있게 남겨드립니다."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 6: 도입 — AI 통제형
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="AI 통제형">
+        <div class="slide-header"><span class="slide-number">05</span><span class="section-label">도입</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">도입 ③ <span class="accent">AI 통제형</span> <span style="font-size: var(--body-size); color: var(--text-muted);">— "AI로 빠르게"</span></h2>
+            <p class="reveal" style="color: var(--accent-purple);">AI 적용 설계자 + 품질 통제자</p>
+            <ul class="bullets reveal">
+                <li>AI 활용 범위 정의 및 <strong>경계 설정</strong></li>
+                <li>규제형 문서 초안 생성 <strong>프롬프트·템플릿 라이브러리</strong></li>
+                <li>보안 요구사항 코파일럿 · 위협 시나리오 자동 도출</li>
+                <li>변경영향분석 초안 자동화 · 문서 간 <strong>정합성 자동 검토</strong></li>
+                <li>Human-in-the-Loop 설계 (전문가 검토·승인 기준 수립)</li>
+            </ul>
+            <div class="highlight-card warm-subtle reveal">
+                <p><strong>최대 장점:</strong> 프로젝트가 끝나도 도구가 여러분 조직에 남습니다. 계속 AI를 활용해 문서를 생성·갱신할 수 있습니다.</p>
+            </div>
+            <div class="key-message reveal">
+                <p>"AI로 빠르게 만들되, 규제형 품질로 다듬어 드립니다. 그 도구는 여러분께 남습니다."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 7: 운영 — 고도화 파트너형
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="고도화 파트너">
+        <div class="slide-header"><span class="slide-number">06</span><span class="section-label">운영</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">운영 ① <span class="accent">고도화 파트너형</span></h2>
+            <p class="reveal" style="color: var(--text-secondary);">"내부 인력으로 운영하겠다" — 정기적으로 받쳐드리는 방식</p>
+            <div class="card-grid cols-3 reveal-scale" style="max-width: min(90vw, 850px);">
+                <div class="info-card">
+                    <span class="card-label teal">월간</span>
+                    <p>운영 리뷰 1회<br>취약점 이슈 해석 지원</p>
+                </div>
+                <div class="info-card">
+                    <span class="card-label blue">분기</span>
+                    <p>내부점검 체크리스트<br>문서 개정 리뷰</p>
+                </div>
+                <div class="info-card">
+                    <span class="card-label purple">반기</span>
+                    <p>보안 운영 현황 감사<br>개선 권고</p>
+                </div>
+            </div>
+            <div class="two-col reveal" style="margin-top: var(--element-gap); max-width: min(90vw, 850px);">
+                <div class="info-card">
+                    <span class="card-label orange">연간</span>
+                    <p>모의심사(Mock Audit), 신규 인력 온보딩 교육</p>
+                </div>
+                <div class="info-card">
+                    <span class="card-label orange">수시</span>
+                    <p>경영층 보고용 KPI·대시보드 설계 지원</p>
+                </div>
+            </div>
+            <div class="key-message reveal">
+                <p>"여러분이 운영하시되, 무너지지 않도록 정기적으로 받쳐드립니다."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 8: 운영 — vCISO형
+         =========================================== -->
+    <section class="slide content-slide" aria-label="vCISO">
+        <div class="slide-header"><span class="slide-number">07</span><span class="section-label">운영</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">운영 ② <span class="accent">vCISO형</span> 운영 파트너</h2>
+            <p class="reveal" style="color: var(--text-secondary);">"전문가 지원이 상시 필요하다" — 외부 보안책임자 역할</p>
+            <ul class="bullets reveal">
+                <li><strong>월간</strong> 취약점 모니터링 보고 (NVD/KISA/OSS 공지 연동)</li>
+                <li><strong>분기</strong> SBOM 갱신 검토 · 신규 CVE 영향 분석</li>
+                <li><strong>상시</strong> 변경요청 보안 영향 검토</li>
+                <li><strong>긴급 SLA</strong> 침해행위 초기 대응, 식약처 신고, RCA, 재발방지</li>
+                <li>경영층 보고자료 · 규제기관 질의 대응 보조</li>
+                <li><strong>연간</strong> 심사 대비 집중 지원</li>
+            </ul>
+            <div class="key-message reveal">
+                <p>"여러분의 책임은 여러분께 두고, 운영 실무는 브이웨이가 보강해드립니다."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 9: 운영 — AI 자동화 파트너형
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="AI 자동화">
+        <div class="slide-header"><span class="slide-number">08</span><span class="section-label">운영</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">운영 ③ <span class="accent">자동화 파트너형</span></h2>
+            <p class="reveal" style="color: var(--accent-purple);">운영 단계는 AI가 가장 큰 효과를 내는 영역</p>
+            <table class="slide-table reveal-scale">
+                <thead>
+                    <tr><th>AI 운영 모듈</th><th>기능</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>CVE-SBOM 자동 매칭 봇</td><td>SBOM → 신규 CVE 매칭 → 심각도 분류 → 알림</td></tr>
+                    <tr><td>문서 자동 생성기</td><td>제품 정보 → 절차서·IRP·보안 평가서 초안</td></tr>
+                    <tr><td>식약처 신고 보조</td><td>증상 → 신고 양식 + 다음 조치 가이드</td></tr>
+                    <tr><td>감사 체크리스트 자동화</td><td>증적 → 보안지침 8개 영역 준수 대시보드</td></tr>
+                    <tr><td>변경영향평가 코파일럿</td><td>변경요청 → 보호조치 영향 + 변경관리 해당 여부</td></tr>
+                    <tr><td>월간 보고서 자동 생성</td><td>모니터링 결과 → 경영진·규제기관용 보고서</td></tr>
+                </tbody>
+            </table>
+            <div class="key-message reveal">
+                <p>"AI가 운영을 가볍게 만들고, 브이웨이는 그 AI가 규제에 맞게 작동하도록 설계해드립니다."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 10: 상황별 추천 — 소형
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="소형 기업">
+        <div class="slide-header"><span class="slide-number">09</span><span class="section-label">추천</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">상황별 추천 — <span class="warm">소형 SaMD 기업</span></h2>
+            <p class="reveal" style="color: var(--text-muted);">인원 30명 미만, 보안 역량 부재</p>
+            <ul class="bullets reveal">
+                <li>규제 대응 방법을 모르고, 전담 인력 채용은 비현실적</li>
+                <li>비용에 민감</li>
+            </ul>
+            <div class="highlight-card orange reveal">
+                <p><strong>제안:</strong> Quick Scan(1~2주 진단) → Full Build(풀패키지) → Annual Maintenance(월정 운영)<br>
+                <strong>번들 구조</strong>로, AI 자동화 포함되어 기존 컨설팅 대비 훨씬 낮은 가격</p>
+            </div>
+            <div class="key-message reveal">
+                <p>"규제 처벌 리스크보다 브이웨이와의 계약이 훨씬 저렴합니다. 내부 인력 채용 부담이 사라집니다."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 11: 상황별 추천 — 중형 / 대형
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="중형 대형">
+        <div class="slide-header"><span class="slide-number">10</span><span class="section-label">추천</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">상황별 추천 — <span class="warm">중형 · 대형</span></h2>
+            <div class="card-grid cols-2 reveal-scale">
+                <div class="info-card">
+                    <span class="card-label blue">중형 (30~200명)</span>
+                    <h3>Co-Build + 담당자 양성</h3>
+                    <p>QA/RA는 있으나 사이버보안 전문성 부족. 내부 주도권 존중하면서 핵심 판단 지점에 개입.</p>
+                    <p style="margin-top: clamp(0.3rem, 0.5vh, 0.4rem);"><strong>기존 IEC 62304 SDL에 보안지침을 "연결"</strong> — 새로 시작이 아닌 확장.</p>
+                    <div style="margin-top: auto; padding-top: clamp(0.3rem, 0.5vh, 0.5rem); border-top: 1px solid var(--border-subtle); font-size: var(--label-size); color: var(--accent-blue);">
+                        "외부 의존 없이 스스로 운영할 역량을 이식"
+                    </div>
+                </div>
+                <div class="info-card">
+                    <span class="card-label orange">대형 / 글로벌 진출</span>
+                    <h3>Annual Audit + Crosswalk</h3>
+                    <p>내부 보안팀 보유, 그러나 의료기기 특화 규제 이해 부족. FDA·EU MDR 정합성 필요.</p>
+                    <p style="margin-top: clamp(0.3rem, 0.5vh, 0.4rem);"><strong>우수 관리체계 인증 취득</strong> → 허가·인증·신고 자료 일부 면제 혜택.</p>
+                    <div style="margin-top: auto; padding-top: clamp(0.3rem, 0.5vh, 0.5rem); border-top: 1px solid var(--border-subtle); font-size: var(--label-size); color: var(--accent-warm);">
+                        "국내 식약처와 글로벌 심사 모두 인정하는 형태"
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 12: 실행 가능한 3단계
+         =========================================== -->
+    <section class="slide content-slide glow-tl" aria-label="3단계">
+        <div class="slide-header"><span class="slide-number">11</span><span class="section-label">실행</span></div>
+        <div class="slide-content">
+            <h2 class="reveal">지금 바로 시작할 <span class="warm">3단계</span></h2>
+            <div class="step-list reveal">
+                <div class="step-item">
+                    <span class="step-badge">1단계 — 이번 주</span>
+                    <div class="step-content">
+                        <p><strong>자가 진단 3가지 질문:</strong><br>
+                        (a) 사이버보안 담당자 지정? (b) 침해행위 식약처 신고 프로세스 문서화? (c) 제품 SBOM 존재?<br>
+                        <span style="color: var(--accent-warm);">하나라도 "아니오"면, 이미 규제 리스크 노출.</span></p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-badge">2단계 — 이번 달</span>
+                    <div class="step-content">
+                        <p><strong>Gap Scan:</strong> 브이웨이 <span style="color: var(--accent);">무상 진단 서비스</span>로 1주 내 보안지침 8개 영역 전체 현황 파악.<br>
+                        경영진 의사결정에 쓸 수 있는 <strong>로드맵 + 예산 시뮬레이션</strong> 제공.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-badge">3단계 — 3개월 내</span>
+                    <div class="step-content">
+                        <p><strong>파일럿 착수:</strong> 제품 1종에 관리체계 먼저 적용. 성공 경험 → 템플릿화 → 나머지 제품 확산.<br>
+                        브이웨이가 이 <strong>파일럿 구조 자체를 설계</strong>해드립니다.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+         SLIDE 13: 마무리
+         =========================================== -->
+    <section class="slide content-slide glow-br" aria-label="마무리">
+        <div class="slide-header"><span class="slide-number">12</span><span class="section-label">마무리</span></div>
+        <div class="slide-content" style="align-items: flex-start;">
+            <h2 class="reveal">오늘 드리고 싶은 <span class="warm">한 문장</span></h2>
+            <div class="divider reveal"></div>
+            <div class="quote-block reveal" style="border-left-color: var(--accent-warm);">
+                <p>규제 대응은 혼자 하기 어렵고, 외주만으로도 안 되며, AI만으로는 책임질 수 없습니다.<br><br>
+                브이웨이는 이 세 가지를 통합해 여러분의 <strong style="color: var(--accent);">규제 적합성</strong>과 <strong style="color: var(--accent);">운영 가능성</strong>을 하나로 묶어드리는 하이브리드 실행 파트너입니다.</p>
+            </div>
+            <div class="highlight-card warm-subtle reveal" style="margin-top: var(--content-gap);">
+                <p style="text-align: center; font-weight: 700; font-size: clamp(0.9rem, 1.6vw, 1.2rem);">
+                    규제 시행 초기는 기회의 창입니다.<br>
+                    먼저 준비한 기업이 시장의 기준을 정의합니다.<br><br>
+                    <span style="color: var(--accent-warm);">언제든 편하게 연락 주십시오. 감사합니다.</span>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===========================================
+       JAVASCRIPT: SLIDE CONTROLLER
+       =========================================== -->
+    <script>
+        class SlidePresentation {
+            constructor() {
+                this.slides = document.querySelectorAll('.slide');
+                this.currentSlide = 0;
+                this.isScrolling = false;
+                this.scrollTimeout = null;
+                this.setupIntersectionObserver();
+                this.setupKeyboardNav();
+                this.setupTouchNav();
+                this.setupWheelNav();
+                this.setupProgressBar();
+                this.setupNavDots();
+                this.slides[0].classList.add('visible');
+            }
+
+            setupIntersectionObserver() {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('visible');
+                            const idx = Array.from(this.slides).indexOf(entry.target);
+                            if (idx !== -1) { this.currentSlide = idx; this.updateProgressBar(); this.updateNavDots(); }
+                        }
+                    });
+                }, { threshold: 0.5 });
+                this.slides.forEach(slide => observer.observe(slide));
+            }
+
+            setupKeyboardNav() {
+                document.addEventListener('keydown', (e) => {
+                    switch(e.key) {
+                        case 'ArrowDown': case 'ArrowRight': case ' ': case 'PageDown':
+                            e.preventDefault(); this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1)); break;
+                        case 'ArrowUp': case 'ArrowLeft': case 'PageUp':
+                            e.preventDefault(); this.goToSlide(Math.max(this.currentSlide - 1, 0)); break;
+                        case 'Home': e.preventDefault(); this.goToSlide(0); break;
+                        case 'End': e.preventDefault(); this.goToSlide(this.slides.length - 1); break;
+                    }
+                });
+            }
+
+            setupTouchNav() {
+                let startY = 0, startX = 0;
+                document.addEventListener('touchstart', (e) => { startY = e.touches[0].clientY; startX = e.touches[0].clientX; }, { passive: true });
+                document.addEventListener('touchend', (e) => {
+                    const dY = startY - e.changedTouches[0].clientY, dX = startX - e.changedTouches[0].clientX;
+                    if (Math.abs(dY) > Math.abs(dX) && Math.abs(dY) > 50) {
+                        if (dY > 0) this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                        else this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                    }
+                }, { passive: true });
+            }
+
+            setupWheelNav() {
+                document.addEventListener('wheel', (e) => {
+                    if (this.isScrolling) return; this.isScrolling = true;
+                    if (e.deltaY > 0) this.goToSlide(Math.min(this.currentSlide + 1, this.slides.length - 1));
+                    else this.goToSlide(Math.max(this.currentSlide - 1, 0));
+                    clearTimeout(this.scrollTimeout);
+                    this.scrollTimeout = setTimeout(() => { this.isScrolling = false; }, 800);
+                }, { passive: true });
+            }
+
+            setupProgressBar() { this.progressBar = document.getElementById('progressBar'); this.updateProgressBar(); }
+            updateProgressBar() { if (this.progressBar) this.progressBar.style.width = ((this.currentSlide + 1) / this.slides.length) * 100 + '%'; }
+
+            setupNavDots() {
+                const c = document.getElementById('navDots'); if (!c) return;
+                this.slides.forEach((_, i) => {
+                    const d = document.createElement('button');
+                    d.className = 'nav-dot' + (i === 0 ? ' active' : '');
+                    d.setAttribute('aria-label', `슬라이드 ${i + 1}`);
+                    d.addEventListener('click', () => this.goToSlide(i)); c.appendChild(d);
+                });
+                this.dots = c.querySelectorAll('.nav-dot');
+            }
+            updateNavDots() { if (this.dots) this.dots.forEach((d, i) => d.classList.toggle('active', i === this.currentSlide)); }
+
+            goToSlide(index) {
+                if (index < 0 || index >= this.slides.length) return;
+                this.currentSlide = index;
+                this.slides[index].scrollIntoView({ behavior: 'smooth' });
+                this.updateProgressBar(); this.updateNavDots();
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => { new SlidePresentation(); });
+    </script>
+</body>
+</html>
